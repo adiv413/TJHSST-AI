@@ -166,4 +166,6 @@ def getRandomPuzzle():
     
     return ret
 
+start = time.time()
 main()
+print(time.time() - start)
