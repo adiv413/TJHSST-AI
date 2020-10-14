@@ -1,6 +1,7 @@
 # Aditya Vasantharao, pd. 4
 # Slider puzzles using Manhattan Distances instead of normal BFS
-# Usage: python stress_test.py
+# Usage: python slider_puzzles_v2.py
+# change line 15 to boards = open('puzzles.txt').read().splitlines() if you want to use the predetermined 4x4s
 
 import sys
 import time
@@ -15,8 +16,16 @@ def main():
     stats = [0] * 5 # #impos., #possible, impos total time, pos total time, sum of path lengths
 
     for board in boards:
-        height = 3
-        width = 3
+        height = 0
+        width = 0
+
+        for i in range(int(math.sqrt(len(board))), 0, -1):
+            if len(board) % i == 0:
+                quotient = len(board) / i
+                height = int(min(quotient, i))
+                width = int(max(quotient, i))
+                break
+
         goal = ''.join(sorted([i for i in board if i != '_'])) + '_' + chr(len(board) - 1 + US_BUFFER)
         steps = 0
         curr_elapsed = time.time()
@@ -37,6 +46,8 @@ def main():
             stats[1] += 1
             stats[3] += curr_elapsed
             stats[4] += steps
+
+    stats[4] //= stats[1]
 
     print(*stats)
 
@@ -118,11 +129,13 @@ def getNeighbors(board, height, width):
     return neighbors
 
 def findPath(board, height, width, goal):
-    queue = [(getMD(board, goal), board)]
+    queue = [(getMD(board[:-1], goal[:-1], height, width), board)]
     visited = {board : ''}
-
+    total = 0
+    total2 = 0
     while queue:
-        dist, curr = queue.pop()
+        dist, curr = min(queue)
+        queue.remove((dist, curr))
 
         if curr == goal:
             count = 0
@@ -134,16 +147,13 @@ def findPath(board, height, width, goal):
 
             return count
         
-        # adds (MD, i) to toVisit for each neighbor, i, of curr, where MD is getMD(i without the _ and pos character, goal) 
-        # this looks cleaner in a normal for loop but list comps are faster
-        toVisit = [(getMD(i[:ord(i[-1]) - US_BUFFER] + i[ord(i[-1]) - US_BUFFER + 1 : -1], goal), i) for i in getNeighbors(curr, height, width) if i not in visited.keys()]
-        
+        s = time.time()
+        toVisit = [(getMD(i[:-1], goal[:-1], height, width), i) for i in getNeighbors(curr, height, width) if i not in visited.keys()]
+        total += time.time() - s
         queue[:0] = toVisit
 
         for _, child in toVisit:
             visited[child] = curr
-
-        queue.sort()
 
     return -1
 
@@ -170,8 +180,19 @@ def getRandomPuzzle():
     
     return ret
 
-def getMD(board, goal): # gets Manhattan Distance from board to goal
-    pass
+def getMD(board, goal, height, width): # gets Manhattan Distance from board to goal
+    total_dist = 0
+
+    for i in range(height):
+        for j in range(width):
+            if board[i * width + j] != '_':
+                goal_pos = goal.index(board[i * width + j])
+                goal_height = goal_pos // width
+                goal_width = goal_pos - goal_height * width
+
+                total_dist += abs(goal_height - i) + abs(goal_width - j)
+    
+    return total_dist
 
 start = time.time()
 main()
