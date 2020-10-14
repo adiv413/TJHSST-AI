@@ -1,2 +1,2 @@
 # TJHSST-AI
-Source code I wrote for TJHSST's Artificial Intelligence 1/2 classes in the 2019-2020 school year, taught by Dr. Gabor
+Source code I wrote for TJHSST's Artificial Intelligence 1/2 classes, taught by Dr. Peter Gabor, in the 2020-2021 school year
