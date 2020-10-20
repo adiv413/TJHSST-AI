@@ -43,6 +43,7 @@ def main():
             stats[0] += 1
             stats[2] += curr_elapsed
         else:
+            print(board[:-1] + ":", steps)
             stats[1] += 1
             stats[3] += curr_elapsed
             stats[4] += steps

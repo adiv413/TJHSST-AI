@@ -1,8 +1,5 @@
+import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
-# Test slider puzzle algorithm for speed by generating 500 3x3s and testing the algorithm on that
-# Usage: python stress_test.py
-
-import sys
 import time
 import math
 import random
@@ -11,50 +8,37 @@ US_BUFFER = 33 # buffer so that we can store the underscore pos as a readable ch
 
 def main():
     start = time.time()
-    boards = boards = [getRandomPuzzle() for i in range(500)]
-    stats = [0] * 5 # #impos., #possible, impos total time, pos total time, sum of path lengths
+    boards = open(args[0], 'r').read().splitlines()
+    goal = boards[0] + chr(boards[0].index('_') + US_BUFFER)
+    count = 0
+    times = []
 
     for board in boards:
-        height = 3
-        width = 3
-        goal = ''.join(sorted([i for i in board if i != '_'])) + '_' + chr(len(board) - 1 + US_BUFFER)
+        height = 0
+        width = 0
+
+        for i in range(int(math.sqrt(len(board))), 0, -1):
+            if len(board) % i == 0:
+                quotient = len(board) / i
+                height = int(min(quotient, i))
+                width = int(max(quotient, i))
+                break
+
         steps = 0
         curr_elapsed = time.time()
+        board += chr(board.index('_') + US_BUFFER) # store the position of the underscore as the last character in the string
 
-        if board != goal[:-1]:
-            if getInversionCount(board) % 2 == 1: 
-                steps = -1
-            else:
-                board += chr(board.index('_') + US_BUFFER) # store the position of the underscore as the last character in the string
-                steps = findPath(board, height, width, goal)
+        if board != goal: 
+            # it's guaranteed that all puzzles given will be solvable; no need to check for impossible
+            steps = findPath(board, height, width, goal)
         
         curr_elapsed = time.time() - curr_elapsed
 
-        if steps == -1:
-            stats[0] += 1
-            stats[2] += curr_elapsed
-        else:
-            stats[1] += 1
-            stats[3] += curr_elapsed
-            stats[4] += steps
+        times.append(curr_elapsed)
+        print(str(count) + ':', board[:-1], 'solved in', steps, 'steps in', str(curr_elapsed), 'seconds')
+        count += 1
 
-    print(*stats)
-
-def getInversionCount(board): 
-    # gets the number of inversions (the number of pairs of numbers on the board where the 
-    # number from the outer loop/left side is less than the number from the inner loop/right side)
-    # basically just sees how many pairs of numbers are out of order, because all pairs should be sorted
-    # for the board to be solved
-
-    filtered_board = [i for i in board if i != '_']
-    inversions = 0
-
-    for i in range(len(filtered_board)):
-        for j in range(i + 1, len(filtered_board)):
-            if filtered_board[i] > filtered_board[j]:
-                inversions += 1
-
-    return inversions
+    print('Total process time:', sum(times))
 
 def getNeighbors(board, height, width):
     underscore = ord(board[-1]) - US_BUFFER
@@ -118,28 +102,25 @@ def getNeighbors(board, height, width):
     return neighbors
 
 def findPath(board, height, width, goal):
-    queue = [board]
-    visited = {board : ''}
-
+    queue = [(getMD(board[:-1], goal[:-1], height, width), 0, board)] # [(h [which is MD + level], level, board)]
+    visited = set()
+    
     while queue:
-        curr = queue.pop()
+        h, level, curr = min(queue)
+        queue.remove((h, level, curr))
 
-        if curr == goal:
-            count = 0
-            node = goal
+        if curr in visited:
+            continue
 
-            while node != '':
-                count += 1
-                node = visited[node]
+        visited.add(curr)
 
-            return count
-        
-        
-        toVisit = [i for i in getNeighbors(curr, height, width) if i not in visited.keys()]
-        queue[:0] = toVisit
+        for child in getNeighbors(curr, height, width):
+            if child == goal:
+                return level + 1
+            elif child in visited:
+                continue
 
-        for i in toVisit:
-            visited[i] = curr
+            queue.append((getMD(child[:-1], goal[:-1], height, width) + level + 1, level + 1, child))
 
     return -1
 
@@ -166,6 +147,20 @@ def getRandomPuzzle():
     
     return ret
 
+def getMD(board, goal, height, width): # gets Manhattan Distance from board to goal
+    total_dist = 0
+
+    for i in range(height):
+        for j in range(width):
+            if board[i * width + j] != '_':
+                goal_pos = goal.index(board[i * width + j])
+                goal_height = goal_pos // width
+                goal_width = goal_pos - goal_height * width
+
+                total_dist += abs(goal_height - i) + abs(goal_width - j)
+    
+    return total_dist
+
 start = time.time()
 main()
-print(time.time() - start)
+print('Total time time:', time.time() - start)
