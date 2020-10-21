@@ -107,29 +107,33 @@ def findPath(board, height, width, goal):
     ptr = 0
 
     while queue:
-        try:
-            assert(len(queue) > ptr)
-        except:
-            print(len(queue), ptr)
-            raise Exception()
+        # try:
+        #     assert(len(queue) > ptr)
+        # except:
+        #     print(len(queue), ptr)
+        #     raise Exception()
         h, level, curr = min(queue[ptr:])
         idx = queue.index((h, level, curr))
         # print()
-        # print(queue)
+        # print('before:', queue[ptr], queue[idx])
         queue[ptr], queue[idx] = queue[idx], queue[ptr]
+        # print('after:', queue[ptr], queue[idx])
         ptr += 1
         # print(queue)
         # print()
         if curr in visited:
-            print(curr)
+            print('count:', queue.count((h, level, curr)), 'pointer:', ptr, 'curr:', queue.index((h, level, curr)))
+            print(queue[queue.index((h, level, curr)) - 2: queue.index((h, level, curr)) + 2])
+            print(queue.index((h, level, curr)), ptr, curr)
             continue
+        print('space')
 
         visited.add(curr)
 
         for child in getNeighbors(curr, height, width):
             if child == goal:
                 return level + 1
-            elif child in visited:
+            elif child in visited or child in queue:
                 continue
 
             queue.append((getMD(child[:-1], goal[:-1], height, width) + level + 1, level + 1, child))
