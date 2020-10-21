@@ -104,12 +104,24 @@ def getNeighbors(board, height, width):
 def findPath(board, height, width, goal):
     queue = [(getMD(board[:-1], goal[:-1], height, width), 0, board)] # [(h [which is MD + level], level, board)]
     visited = set()
-    
-    while queue:
-        h, level, curr = min(queue)
-        queue.remove((h, level, curr))
+    ptr = 0
 
+    while queue:
+        try:
+            assert(len(queue) > ptr)
+        except:
+            print(len(queue), ptr)
+            raise Exception()
+        h, level, curr = min(queue[ptr:])
+        idx = queue.index((h, level, curr))
+        # print()
+        # print(queue)
+        queue[ptr], queue[idx] = queue[idx], queue[ptr]
+        ptr += 1
+        # print(queue)
+        # print()
         if curr in visited:
+            print(curr)
             continue
 
         visited.add(curr)
