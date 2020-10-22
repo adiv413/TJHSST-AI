@@ -102,41 +102,36 @@ def getNeighbors(board, height, width):
     return neighbors
 
 def findPath(board, height, width, goal):
-    queue = [(getMD(board[:-1], goal[:-1], height, width), 0, board)] # [(h [which is MD + level], level, board)]
+    min_MD = getMD(board[:-1], goal[:-1], height, width)
+    queue = [[] for i in range(200)]
+    queue[min_MD].append((board, 0)) 
     visited = set()
-    ptr = 0
+    ptr = [min_MD, 0]
 
     while queue:
-        # try:
-        #     assert(len(queue) > ptr)
-        # except:
-        #     print(len(queue), ptr)
-        #     raise Exception()
-        h, level, curr = min(queue[ptr:])
-        idx = queue.index((h, level, curr))
-        # print()
-        # print('before:', queue[ptr], queue[idx])
-        queue[ptr], queue[idx] = queue[idx], queue[ptr]
-        # print('after:', queue[ptr], queue[idx])
-        ptr += 1
-        # print(queue)
-        # print()
+        while ptr[1] >= len(queue[ptr[0]]):
+            ptr[0] += 1
+            ptr[1] = 0
+
+        curr, level = queue[ptr[0]][ptr[1]]
+        ptr[1] += 1
+        
         if curr in visited:
-            print('count:', queue.count((h, level, curr)), 'pointer:', ptr, 'curr:', queue.index((h, level, curr)))
-            print(queue[queue.index((h, level, curr)) - 2: queue.index((h, level, curr)) + 2])
-            print(queue.index((h, level, curr)), ptr, curr)
             continue
-        print('space')
 
         visited.add(curr)
 
         for child in getNeighbors(curr, height, width):
             if child == goal:
                 return level + 1
-            elif child in visited or child in queue:
+            elif child in visited:
                 continue
 
-            queue.append((getMD(child[:-1], goal[:-1], height, width) + level + 1, level + 1, child))
+            f = getMD(child[:-1], goal[:-1], height, width) + level + 1
+            if f < 200:
+                queue[f].append((child, level + 1))
+            else:
+                queue[-1].append((child, level + 1))
 
     return -1
 
