@@ -102,9 +102,9 @@ def getNeighbors(board, height, width):
     return neighbors
 
 def findPath(board, height, width, goal):
-    min_MD = getMD(board[:-1], goal[:-1], height, width)
+    min_MD = getMDFirst(board[:-1], goal[:-1], height, width)
     queue = [[] for i in range(200)]
-    queue[min_MD].append((board, 0)) 
+    queue[min_MD].append((board, 0, min_MD)) 
     visited = set()
     ptr = [min_MD, 0]
 
@@ -113,7 +113,7 @@ def findPath(board, height, width, goal):
             ptr[0] += 1
             ptr[1] = 0
 
-        curr, level = queue[ptr[0]][ptr[1]]
+        curr, level, MD = queue[ptr[0]][ptr[1]]
         ptr[1] += 1
         
         if curr in visited:
@@ -127,11 +127,14 @@ def findPath(board, height, width, goal):
             elif child in visited:
                 continue
 
-            f = getMD(child[:-1], goal[:-1], height, width) + level + 1
+            new_MD = getMD(child, curr, goal, height, width) + MD
+
+            f = new_MD + level + 1
+
             if f < 200:
-                queue[f].append((child, level + 1))
+                queue[f].append((child, level + 1, new_MD))
             else:
-                queue[-1].append((child, level + 1))
+                queue[-1].append((child, level + 1, new_MD))
 
     return -1
 
@@ -158,7 +161,9 @@ def getRandomPuzzle():
     
     return ret
 
-def getMD(board, goal, height, width): # gets Manhattan Distance from board to goal
+def getMDFirst(board, goal, height, width): # gets Manhattan Distance from board to goal
+    # this method is only used for the initial Manhattan Distance calculation
+    
     total_dist = 0
 
     for i in range(height):
@@ -171,6 +176,24 @@ def getMD(board, goal, height, width): # gets Manhattan Distance from board to g
                 total_dist += abs(goal_height - i) + abs(goal_width - j)
     
     return total_dist
+
+def getMD(prev, curr, goal, height, width): # don't remove the trailing character for this method
+    # gets Manhattan distance by comparing the current word with the previous word
+
+    prev_index = ord(curr[-1]) - US_BUFFER
+    curr_index = ord(prev[-1]) - US_BUFFER
+
+    prev_i = prev_index // width
+    prev_j = prev_index - prev_i * width
+
+    curr_i = curr_index // width
+    curr_j = curr_index - curr_i * width
+
+    goal_index = goal.index(prev[prev_index])
+    goal_i = goal_index // width
+    goal_j = goal_index - goal_i * width
+
+    return 1 if abs(goal_i - prev_i) + abs(goal_j - prev_j) > abs(goal_i - curr_i) + abs(goal_j - curr_j) else -1
 
 start = time.time()
 main()
