@@ -1,6 +1,6 @@
 # Aditya Vasantharao, pd. 4
-# Slider puzzles using Manhattan Distances instead of normal BFS
-# Usage: python slider_puzzles_v2.py
+# Solves slider puzzles using Manhattan Distances instead of normal BFS
+# Usage: python slider_puzzles_MD.py
 # change line 15 to boards = open('puzzles.txt').read().splitlines() if you want to use the predetermined 4x4s
 
 import sys

@@ -1,5 +1,9 @@
-import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
+# Solves slider puzzles using A* instead of normal BFS + Manhattan Distance
+# Usage: python slider_puzzles_a_star.py puzzles.txt
+# puzzles.txt contains 53 4x4 puzzles which increase in difficulty
+
+import sys;
 import time
 import math
 import random
@@ -8,6 +12,7 @@ US_BUFFER = 33 # buffer so that we can store the underscore pos as a readable ch
 
 def main():
     start = time.time()
+    args = sys.argv[1:]
     boards = open(args[0], 'r').read().splitlines()
     goal = boards[0] + chr(boards[0].index('_') + US_BUFFER)
     count = 0
