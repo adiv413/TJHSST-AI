@@ -6,6 +6,7 @@ import time
 def main():
     isSinglePuzzle = False
     puzzles = []
+    count = 0
     
     if '.txt' in args[0]:
         puzzles = open(args[0], 'r').read().splitlines()
@@ -14,6 +15,8 @@ def main():
         puzzles = [args[0]]
 
     for puzzle in puzzles:
+        start = time.time()
+        count += 1
         puzzle_dim = int(math.sqrt(len(puzzle))) # height/width of the actual puzzle, 9
         height = 0 # height of each small sub-square, 3
         width = 0 # width of each small sub-square, 3
@@ -57,7 +60,51 @@ def main():
                     if curr != '.':
                         constraints[curr] |= set(item[i])
 
-        
+        result = solve(puzzle, constraints, None)
+        checksum = sum([int(i, 17) for i in result])
 
+        if not result:
+            result = puzzle
+
+        end = time.time() - start
+
+        if count < 10:
+            print(str(count) + ': ' + puzzle)
+            print('   ' + result, checksum, str(end) + 's')
+        else:
+            print(str(count) + ': ' + puzzle)
+            print('    ' + result, checksum, str(end) + 's')
+
+
+
+
+def solve(puzzle, constraints, new_vals):
+    if new_vals:
+        constraints[new_vals[1]].add(new_vals[0])
+
+    if isSolved(puzzle):
+        return puzzle
+
+    choices = [[i, j] for j in constraints for i in range(len(puzzle)) if puzzle[i] == '.']
+    
+    for choice in choices:
+        new_puzzle = puzzle[:choice[0]] + choice[1] + puzzle[choice[0] + 1:]
+
+        result = ''
+
+        if not isInvalid(choice[0], choice[1], constraints):
+            result = solve(new_puzzle, constraints, choice)
+
+        if result:
+            return result
+
+    return ''
+
+def isSolved(puzzle):
+    return '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405
+
+def isInvalid(new_index, new_val, old_constraints):
+    return new_index in old_constraints[new_val]
+            
 
 main()
