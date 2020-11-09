@@ -128,14 +128,30 @@ def isInvalid(new_index, new_val, old_constraints):
     return new_index in old_constraints[new_val]
 
 main()
-
-
 # import sys; args = sys.argv[1:]
 # # Aditya Vasantharao, pd. 4
 # import math
 # import time
+# import pprint ###################GET RID OF MEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+# symbols = []
+# height = 0
+# width = 0
+# lookup_table = {}
+# puzzle_dim = 0
+# constraint_sets = []
+# items = []
 
 # def main():
+
+#     global symbols
+#     global height
+#     global width
+#     global lookup_table
+#     global puzzle_dim
+#     global constraint_sets
+#     global items
+
 #     isSinglePuzzle = False
 #     puzzles = []
 #     count = 0
@@ -154,7 +170,8 @@ main()
 #         height = 0 # height of each small sub-square, 3
 #         width = 0 # width of each small sub-square, 3
 #         symbols = [str(i) for i in range(1, 10)]
-#         constraints = {}
+#         constraint_sets = []
+#         lookup_table = {i : [] for i in range(len(puzzle))}
 
 #         for i in range(int(math.sqrt(puzzle_dim)), 0, -1):
 #             if puzzle_dim % i == 0:
@@ -170,9 +187,8 @@ main()
 #                 symbols += ['0'] + [chr(i) for i in range(65, 71)]
 #             else:
 #                 symbols += [chr(i) for i in range(65, 72)]
-            
-#         for i in symbols:
-#             constraints[i] = set()
+
+#         constraint_set_count = 0
 
 #         rows = [[j for j in range(i, i + puzzle_dim)] for i in range(0, len(puzzle), puzzle_dim)]
 #         cols = [[j for j in range(i, len(puzzle), puzzle_dim)] for i in range(puzzle_dim)]
@@ -185,28 +201,29 @@ main()
 #                     for l in range(j, j + width):
 #                         temp.append(k * puzzle_dim + l)
 #                 sub_squares.append(temp)
+                
+#         items = rows + cols + sub_squares
 
-#         for item in (rows, cols, sub_squares):
-#             for i in range(len(item)):
-#                 for j in item[i]:
-#                     curr = puzzle[j]
-#                     if curr != '.':
-#                         constraints[curr] |= set(item[i])
+#         for i in items: # item index corresponds w lookup_table # corresponds w constraint sets index
+#             constraint_sets.append(set([puzzle[j] for j in i]))
+#             for j in i:
+#                 lookup_table[j].append(constraint_set_count)
+#             constraint_set_count += 1
 
-#         result = solve(list(puzzle), constraints, None)
+#         # print(len(items))
+#         # print(constraint_sets)
+#         # print(items[lookup_table[12][0]])
+#         # print(lookup_table[12][0])
+#         # print(constraint_sets[lookup_table[12][0]])
+
+#         #uncomment here and below
+
+#         result = solve(puzzle, None)
 #         checksum = sum([int(i, 17) for i in result])
-
-#         for item in (rows, cols, sub_squares):
-#             for i in item:
-#                 check = set([result[j] for j in i])
-#                 if len(check) != len(rows):
-#                     print('nopeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
-#                     incorrect += 1
-#                     break
-#         else:
-#             if not result:
-#                 incorrect += 1
-#                 result = puzzle
+        
+#         if not result:
+#             incorrect += 1
+#             result = puzzle
 
 #         end = time.time() - start
 
@@ -219,26 +236,42 @@ main()
     
 #     print('total correct:', count - incorrect)
 
-
-
-
-# def solve(puzzle, constraints, new_vals):
-#     if new_vals:
-#         constraints[new_vals[1]].add(new_vals[0])
-
+# def solve(puzzle, index):
+#     # print(puzzle + 'sdfkljsdflksjdflksdjflsdkjfdslf', index)
+#     if index is not None and isInvalid(puzzle, index):
+#         return ''
 #     if isSolved(puzzle):
 #         return ''.join(puzzle)
 
-#     choices = [[i, j] for j in constraints for i in range(len(puzzle)) if puzzle[i] == '.']
+#     if index:
+#         for i in range(3): #re-set constraint sets
+#             curr_index = lookup_table[index][i]
+#             curr = items[curr_index] # get the list of indices in the row/col/square
+
+#             constraint_sets[curr_index] = set([puzzle[j] for j in curr]) # re-set the current constraint set
+
+#     choices = []
+
+#     for i in range(len(puzzle)):
+#         if puzzle[i] == '.':
+#             for j in symbols:
+#                 neighbors = constraint_sets[lookup_table[i][0]] | constraint_sets[lookup_table[i][1]] | constraint_sets[lookup_table[i][2]]
+#                 total = 2 * puzzle_dim + height * width - height - width - len(neighbors)
+                
+#                 # if j not in neighbors:
+#                 choices.append((total, i, j))
+
+#     # print(puzzle)
+#     # print(choices)
+#     # if choices:
+#     #     print(puzzle[choices[0][1]])
+#     # print()
     
 #     for choice in choices:
-#         new_puzzle = puzzle
-#         new_puzzle[choice[0]] = choice[1]
-
-#         result = ''
-
-#         if not isInvalid(choice[0], choice[1], constraints):
-#             result = solve(new_puzzle, constraints, choice)
+#         new_puzzle = list(puzzle)
+#         new_puzzle[choice[1]] = choice[2]
+#         new_puzzle = ''.join(new_puzzle)
+#         result = solve(new_puzzle, choice[1])
 
 #         if result:
 #             return result
@@ -246,9 +279,60 @@ main()
 #     return ''
 
 # def isSolved(puzzle):
-#     return '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405
+#     if '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405:
+#         # print('2342432423423423423432432')
+#         for index in range(len(puzzle)):
+#             puzzle_dim = int(math.sqrt(len(puzzle)))
+#             start = (index // puzzle_dim) * puzzle_dim
+#             row = [puzzle[i] for i in range(start, start + puzzle_dim)]
+#             col = [puzzle[i] for i in range(index % puzzle_dim, len(puzzle), puzzle_dim)]
+#             sub_square_h = index // puzzle_dim - (index // puzzle_dim) % height
+#             sub_square_w = index % puzzle_dim - (index % puzzle_dim) % width
 
-# def isInvalid(new_index, new_val, old_constraints):
-#     return new_index in old_constraints[new_val]
+#             sub_square = []
+
+#             for i in range(sub_square_h, sub_square_h + height):
+#                 for j in range(sub_square_w, sub_square_w + width):
+#                     sub_square.append(puzzle[i * puzzle_dim + j])
+
+#             if len(row) != len(set(row)) or len(col) != len(set(col)) or len(sub_square) != len(set(sub_square)):
+#                 print('row:', row)
+#                 print('col:', col)
+#                 print('square:', sub_square)
+#                 print(sub_square_h, sub_square_w)
+#                 temp = [[puzzle[i * puzzle_dim + j] for j in range(9)] for i in range(9)]
+#                 pprint.pprint(temp)
+#                 print()
+#                 print()
+#                 return False
+
+#         return True
+
+#     return False
+
+
+# # def isInvalid(new_index, new_val, old_constraints):
+# #     return new_index in old_constraints[new_val]
+
+# def isInvalid(puzzle, index):
+#     # print('SDKLFJSDKLFSJDFKLSDJFKSLDJFKSLDJFSDKLFJSDKLJFSDF')
+#     # print(index)
+#     # print(lookup_table[index])
+
+#     neighbors = set()
+
+#     for i in lookup_table[index]:
+#         # print(items[i])
+#         neighbors |= set([puzzle[j] for j in items[i]])
+
+#     if puzzle[index] in neighbors:
+#         # print(puzzle[index])
+#         # print(neighbors)
+#         # print()
+#         return True
+    
+#     return False
+
+
 
 # main()
