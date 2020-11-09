@@ -2,14 +2,14 @@ import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
 import math
 import time
-import pprint ###################GET RID OF MEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 symbols = []
 height = 0
 width = 0
 lookup_table = {}
 puzzle_dim = 0
-items = []
+constraint_sets = []
+neighbors = []
 
 def main():
 
@@ -18,7 +18,8 @@ def main():
     global width
     global lookup_table
     global puzzle_dim
-    global items
+    global constraint_sets
+    global neighbors
 
     isSinglePuzzle = False
     puzzles = []
@@ -32,13 +33,18 @@ def main():
         puzzles = [args[0]]
 
     for puzzle in puzzles:
+
+        # initialization and setting up globals/lookup tables
+
         count += 1
         start = time.time()
-        puzzle_dim = int(math.sqrt(len(puzzle))) # height/width of the actual puzzle, 9
-        height = 0 # height of each small sub-square, 3
-        width = 0 # width of each small sub-square, 3
+        puzzle_dim = int(math.sqrt(len(puzzle))) # height/width of the actual puzzle
+        height = 0 # height of each small sub-square
+        width = 0 # width of each small sub-square
         symbols = [str(i) for i in range(1, 10)]
         lookup_table = {i : [] for i in range(len(puzzle))}
+        neighbors = {}
+        lookup_count = 0
 
         for i in range(int(math.sqrt(puzzle_dim)), 0, -1):
             if puzzle_dim % i == 0:
@@ -46,6 +52,8 @@ def main():
                 height = int(min(quotient, i))
                 width = int(max(quotient, i))
                 break
+
+        # find symbol set
 
         if puzzle_dim == 12:
             symbols += ['A', 'B', 'C']
@@ -55,13 +63,9 @@ def main():
             else:
                 symbols += [chr(i) for i in range(65, 72)]
 
-        # setLookupTables(puzzle)
+        # initialize lookup table and constraint sets
 
-
-
-
-        constraint_set_count = 0
-        lookup_table = {i : [] for i in range(len(puzzle))}
+        lookup_table = {i : [] for i in range(len(puzzle))} # lookup table from puzzle index to constraint set indices
 
         rows = [[j for j in range(i, i + puzzle_dim)] for i in range(0, len(puzzle), puzzle_dim)]
         cols = [[j for j in range(i, len(puzzle), puzzle_dim)] for i in range(puzzle_dim)]
@@ -75,16 +79,21 @@ def main():
                         temp.append(k * puzzle_dim + l)
                 sub_squares.append(temp)
                 
-        items = rows + cols + sub_squares
+        constraint_sets = rows + cols + sub_squares
 
-        for i in items: # item index corresponds w lookup_table # corresponds w constraint sets index
+        for i in constraint_sets:
             for j in i:
-                lookup_table[j].append(constraint_set_count)
-            constraint_set_count += 1
+                lookup_table[j].append(lookup_count)
+            lookup_count += 1
+        
+        # initialize neighbors lookup table
 
+        for i in range(len(puzzle)):
+            neighbors[i] = set(constraint_sets[lookup_table[i][0]]) | set(constraint_sets[lookup_table[i][1]]) | set(constraint_sets[lookup_table[i][2]]) 
 
+        # run brute-force algorithm
 
-        result = solve(puzzle)
+        result = bruteForce(puzzle, None)
         checksum = sum([int(i, 17) for i in result])
         
         if not result:
@@ -100,34 +109,40 @@ def main():
             print(str(count) + ': ' + puzzle)
             print('    ' + result, checksum, str(end) + 's')
     
-    print('total correct:', count - incorrect)
+    # print('total correct:', count - incorrect)
 
-def solve(puzzle):
-    # print(puzzle)
-    # print('sdfkljsdfklsdjfklsdjfklsdjfkl')
-    if isInvalid(puzzle):
-        # print('\n\n\n\n\n\n242342342342342342')
+def bruteForce(puzzle, new_index):
+    if new_index and isInvalid(puzzle, new_index): # the first call to bruteforce has new_index as None
         return ''
     if isSolved(puzzle):
-        return ''.join(puzzle)
+        return puzzle
+    elif '.' not in puzzle:
+        return ''
 
-    # print('pleasdkfjsldkfjsdlkfjsdklfsdf')
+    pos = puzzle.index('.')
 
-    choices = []
+    choices = [[pos, j] for j in symbols]
 
-    for i in range(len(puzzle)):
-        if puzzle[i] == '.':
-            for j in symbols:
-                choices.append((i, j))
+    # create set of choices 
 
-    # print(choices)
-    
-    for choice in choices:
+    # for i in range(len(puzzle)):
+    #     if puzzle[i] == '.':
+    #         neighbor_values = [puzzle[j] for j in neighbors[i]] # find the actual sudoku characters from each index in neighbors
+    #         dots = neighbor_values.count('.') # number of empty spaces in the puzzle
+    #         neighbor_values = set(neighbor_values)
+
+    #         for j in symbols:
+    #             if j not in neighbor_values: # if the current symbol is not a duplicate with any neighbor
+    #                 choices.append((dots, i, j)) # num dots, index, symbol
+
+    for choice in choices: # process choices with the least number of spaces first
+        # put the symbol into the blank space in the puzzle
         new_puzzle = list(puzzle)
         new_puzzle[choice[0]] = choice[1]
         new_puzzle = ''.join(new_puzzle)
-        # print(new_puzzle)
-        result = solve(new_puzzle)
+
+        # recur with the new puzzle value
+        result = bruteForce(new_puzzle, choice[0])
 
         if result:
             return result
@@ -135,78 +150,14 @@ def solve(puzzle):
     return ''
 
 def isSolved(puzzle):
-    # print('sdfsdfsdfsdfsdfsdfsdfq1213231423423423423423423')
-    if '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405:
-        # print()
-        # print()
-        # print(puzzle)
-        # print()
+    return '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405
 
-        for index in range(len(puzzle)):
-            # print(lookup_table[index])
-            item_indices = items[lookup_table[index][0]], items[lookup_table[index][1]], items[lookup_table[index][2]]
+def isInvalid(puzzle, index):
+    # get the current character from each neighbor index (except the current one)
+    # if the current character is in the set of neighbor characters, the puzzle is invalid
+    
+    neighbor_values = {puzzle[j] for j in neighbors[index] if j != index} 
+    return puzzle[index] in neighbor_values
 
-            for i in item_indices:
-                item_vals = set([puzzle[j] for j in i])
-
-                if len(i) != len(item_vals):
-                    # print(item_indices)
-                    # print(item_vals)
-                    return False
-
-        return True
-
-    return False
-
-def isInvalid(puzzle):
-    for index in range(len(puzzle)):
-        row = items[lookup_table[index][0]]
-        col = items[lookup_table[index][1]]
-        square = items[lookup_table[index][2]]
-
-
-        for i in (row, col, square):
-            vals = [puzzle[j] for j in i if puzzle[j] != '.']
-            if len(set(vals)) != len(vals):
-                # print('hiii')
-                # print(vals)
-                # print(i)
-                return True
-
-    # if puzzle[0] == '4':
-    #     print('we all good')    
-    # print()
-    # print('\n\n\n\n\n\n\n')
-
-        
-    return False
-
-
-def setLookupTables(puzzle):
-    constraint_set_count = 0
-    constraint_sets = []
-    lookup_table = {i : [] for i in range(len(puzzle))}
-
-    rows = [[j for j in range(i, i + puzzle_dim)] for i in range(0, len(puzzle), puzzle_dim)]
-    cols = [[j for j in range(i, len(puzzle), puzzle_dim)] for i in range(puzzle_dim)]
-
-    sub_squares = []
-    for i in range(0, puzzle_dim, height):
-        for j in range(0, puzzle_dim, width):
-            temp = []
-            for k in range(i, i + height):
-                for l in range(j, j + width):
-                    temp.append(k * puzzle_dim + l)
-            sub_squares.append(temp)
-            
-    items = rows + cols + sub_squares
-
-    for i in items: # item index corresponds w lookup_table # corresponds w constraint sets index
-        constraint_sets.append(set([puzzle[j] for j in i]))
-        for j in i:
-            lookup_table[j].append(constraint_set_count)
-        constraint_set_count += 1
-
-    print(lookup_table)
 
 main()

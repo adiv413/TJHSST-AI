@@ -116,29 +116,25 @@ def bruteForce(puzzle, new_index):
         return ''
     if isSolved(puzzle):
         return puzzle
+    elif '.' not in puzzle:
+        return ''
 
-    choices = []
+    pos = puzzle.index('.')
+    pos = [i for i in range(len(puzzle)) if puzzle[i] == '.']
+    min_pos = min([(sum([1 for j in neighbors[i] if puzzle[j] == '.']), i) for i in pos])[1]
+
+    choices = [[min_pos, j] for j in symbols]
 
     # create set of choices 
 
-    for i in range(len(puzzle)):
-        if puzzle[i] == '.':
-            neighbor_values = [puzzle[j] for j in neighbors[i]] # find the actual sudoku characters from each index in neighbors
-            dots = neighbor_values.count('.') # number of empty spaces in the puzzle
-            neighbor_values = set(neighbor_values)
-
-            for j in symbols:
-                if j not in neighbor_values: # if the current symbol is not a duplicate with any neighbor
-                    choices.append((dots, i, j)) # num dots, index, symbol
-
-    for choice in sorted(choices): # process choices with the least number of spaces first
+    for choice in choices: # process choices with the least number of spaces first
         # put the symbol into the blank space in the puzzle
         new_puzzle = list(puzzle)
-        new_puzzle[choice[1]] = choice[2]
+        new_puzzle[choice[0]] = choice[1]
         new_puzzle = ''.join(new_puzzle)
 
         # recur with the new puzzle value
-        result = bruteForce(new_puzzle, choice[1])
+        result = bruteForce(new_puzzle, choice[0])
 
         if result:
             return result
@@ -146,7 +142,7 @@ def bruteForce(puzzle, new_index):
     return ''
 
 def isSolved(puzzle):
-    return '.' not in puzzle
+    return '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405
 
 def isInvalid(puzzle, index):
     # get the current character from each neighbor index (except the current one)
