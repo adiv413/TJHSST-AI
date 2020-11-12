@@ -63,6 +63,8 @@ def main():
             else:
                 symbols += [chr(i) for i in range(65, 72)]
 
+        symbols = set(symbols)
+
         # initialize lookup table and constraint sets
 
         lookup_table = {i : [] for i in range(len(puzzle))} # lookup table from puzzle index to constraint set indices
@@ -90,6 +92,7 @@ def main():
 
         for i in range(len(puzzle)):
             neighbors[i] = set(constraint_sets[lookup_table[i][0]]) | set(constraint_sets[lookup_table[i][1]]) | set(constraint_sets[lookup_table[i][2]]) 
+            neighbors[i].remove(i)
 
         # run brute-force algorithm
 
@@ -119,11 +122,19 @@ def bruteForce(puzzle, new_index):
     elif '.' not in puzzle:
         return ''
 
-    pos = puzzle.index('.')
+    # pos = puzzle.index('.')
     pos = [i for i in range(len(puzzle)) if puzzle[i] == '.']
-    min_pos = min([(sum([1 for j in neighbors[i] if puzzle[j] == '.']), i) for i in pos])[1]
+    min_pos = None
 
-    choices = [[min_pos, j] for j in symbols]
+    for i in pos:
+        curr = (len(symbols - {puzzle[j] for j in neighbors[i]}), i)
+        if curr[0] < 2:
+            min_pos = curr
+            break
+        elif min_pos and min_pos > curr or not min_pos:
+            min_pos = curr
+
+    choices = [[min_pos[1], j] for j in symbols]
 
     # create set of choices 
 
@@ -148,7 +159,7 @@ def isInvalid(puzzle, index):
     # get the current character from each neighbor index (except the current one)
     # if the current character is in the set of neighbor characters, the puzzle is invalid
     
-    neighbor_values = {puzzle[j] for j in neighbors[index] if j != index} 
+    neighbor_values = {puzzle[j] for j in neighbors[index]} 
     return puzzle[index] in neighbor_values
 
 
