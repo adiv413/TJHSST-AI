@@ -44,6 +44,7 @@ def main():
         symbols = [str(i) for i in range(1, 10)]
         lookup_table = {i : [] for i in range(len(puzzle))}
         neighbors = {}
+        neighbor_values = {}
         lookup_count = 0
 
         for i in range(int(math.sqrt(puzzle_dim)), 0, -1):
@@ -88,15 +89,18 @@ def main():
                 lookup_table[j].append(lookup_count)
             lookup_count += 1
         
-        # initialize neighbors lookup table
+        # initialize neighbors/neighbor values lookup table
 
         for i in range(len(puzzle)):
             neighbors[i] = set(constraint_sets[lookup_table[i][0]]) | set(constraint_sets[lookup_table[i][1]]) | set(constraint_sets[lookup_table[i][2]]) 
             neighbors[i].remove(i)
+            
+            neighbor_values[i] = {puzzle[j] for j in neighbors[i] if puzzle[j] != '.'} 
+        
 
         # run brute-force algorithm
 
-        result = bruteForce(puzzle, None)
+        result = bruteForce(puzzle, None, neighbor_values)
         checksum = sum([int(i, 17) for i in result])
         
         if not result:
@@ -114,27 +118,46 @@ def main():
     
     # print('total correct:', count - incorrect)
 
-def bruteForce(puzzle, new_index):
-    if new_index and isInvalid(puzzle, new_index): # the first call to bruteforce has new_index as None
-        return ''
+def bruteForce(puzzle, new_index, neighbor_vals):
+    # if new_index and isInvalid(puzzle, new_index, neighbor_vals): # the first call to bruteforce has new_index as None
+    #     return ''
     if isSolved(puzzle):
         return puzzle
-    elif '.' not in puzzle:
-        return ''
+    # elif '.' not in puzzle:
+    #     return ''
 
-    # pos = puzzle.index('.')
     pos = [i for i in range(len(puzzle)) if puzzle[i] == '.']
     min_pos = None
 
     for i in pos:
-        curr = (len(symbols - {puzzle[j] for j in neighbors[i]}), i)
+        curr = (len(symbols) - len(neighbor_vals[i]), i)
         if curr[0] < 2:
             min_pos = curr
             break
         elif min_pos and min_pos > curr or not min_pos:
             min_pos = curr
 
-    choices = [[min_pos[1], j] for j in symbols]
+    choices = [[min_pos[1], j] for j in symbols if j not in neighbor_vals[min_pos[1]]]
+
+    if min_pos[0] > 1:
+        for i in neighbors:
+            for symbol in symbols:
+                if symbol not in neighbor_vals[i]:
+
+                    # for all dots in the set of neighbors
+                    neighbor_dots = {neighbor for neighbor in neighbors[i] if puzzle[neighbor] == '.'}
+
+                    # get the number of dots that the symbol can go in
+                    count = len({neighbor for neighbor in neighbor_dots if symbol not in neighbor_vals[neighbor]})
+
+                    if count < 2:
+                        # print(choices)
+                        choices = [[neighbor, symbol] for neighbor in neighbor_dots]
+                        # print(choices)
+                        break
+
+
+    
 
     # create set of choices 
 
@@ -143,9 +166,20 @@ def bruteForce(puzzle, new_index):
         new_puzzle = list(puzzle)
         new_puzzle[choice[0]] = choice[1]
         new_puzzle = ''.join(new_puzzle)
+        new_neighbor_vals = {}
+
+        # make a copy of neighbor_vals, if necessary
+        if len(choices) != 1:
+            new_neighbor_vals = {k : {*neighbor_vals[k]} for k in neighbor_vals}
+        else:
+            new_neighbor_vals = neighbor_vals
+
+        # edit the copy to include the most recent update to the puzzle
+        for neighbor_index in neighbors[choice[0]]:
+            new_neighbor_vals[neighbor_index].add(choice[1])
 
         # recur with the new puzzle value
-        result = bruteForce(new_puzzle, choice[0])
+        result = bruteForce(new_puzzle, choice[0], new_neighbor_vals)
 
         if result:
             return result
@@ -153,14 +187,14 @@ def bruteForce(puzzle, new_index):
     return ''
 
 def isSolved(puzzle):
-    return '.' not in puzzle and sum([int(i, 17) for i in puzzle]) == 405
+    return '.' not in puzzle #and sum([int(i, 17) for i in puzzle]) == 405
 
-def isInvalid(puzzle, index):
+def isInvalid(puzzle, index, neighbor_vals):
     # get the current character from each neighbor index (except the current one)
     # if the current character is in the set of neighbor characters, the puzzle is invalid
     
-    neighbor_values = {puzzle[j] for j in neighbors[index]} 
-    return puzzle[index] in neighbor_values
+    index_neighbor_vals = neighbor_vals[index]
+    return puzzle[index] in index_neighbor_vals
 
 
 main()

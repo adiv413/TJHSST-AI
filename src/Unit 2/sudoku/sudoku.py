@@ -2,7 +2,6 @@ import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
 import math
 import time
-import copy
 
 symbols = []
 height = 0
@@ -131,7 +130,7 @@ def bruteForce(puzzle, new_index, neighbor_vals):
     min_pos = None
 
     for i in pos:
-        curr = (len(symbols - neighbor_vals[i]), i)
+        curr = (len(symbols) - len(neighbor_vals[i]), i)
         if curr[0] < 2:
             min_pos = curr
             break
