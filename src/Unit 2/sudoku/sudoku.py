@@ -112,9 +112,12 @@ def main():
         if count < 10:
             print(str(count) + ': ' + puzzle)
             print('   ' + result, checksum, str(end) + 's')
-        else:
+        elif count < 100:
             print(str(count) + ': ' + puzzle)
             print('    ' + result, checksum, str(end) + 's')
+        else:
+            print(str(count) + ': ' + puzzle)
+            print('     ' + result, checksum, str(end) + 's')
     
     # print('total correct:', count - incorrect)
 
@@ -169,6 +172,7 @@ def bruteForce(puzzle, new_index, neighbor_vals):
 def isSolved(puzzle):
     return '.' not in puzzle #and sum([int(i, 17) for i in puzzle]) == 405
 
+# not used
 def isInvalid(puzzle, index, neighbor_vals):
     # get the current character from each neighbor index (except the current one)
     # if the current character is in the set of neighbor characters, the puzzle is invalid
