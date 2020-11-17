@@ -121,6 +121,23 @@ def main():
     
     # print('total correct:', count - incorrect)
 
+def getSymbolChoices(neighbor_vals, max_len):
+    symbol_dot_list = []
+
+    for cset in constraint_sets:
+        for sym in symbols:
+            curr_sym_dot_list = [i for i in cset if i == '.' and sym not in neighbor_vals[i]]
+
+            if len(curr_sym_dot_list) != 0 and (len(symbol_dot_list) == 0 or len(curr_sym_dot_list) < len(symbol_dot_list)):
+                symbol_dot_list = curr_sym_dot_list
+
+            if len(symbol_dot_list) < 2:
+                return [[idx, sym] for idx in symbol_dot_list]
+
+    if len(symbol_dot_list) < max_len:
+        return [[idx, sym] for idx in symbol_dot_list]
+    return []
+
 def bruteForce(puzzle, new_index, neighbor_vals):
     # if new_index and isInvalid(puzzle, new_index, neighbor_vals): # the first call to bruteforce has new_index as None
     #     return ''
@@ -142,6 +159,11 @@ def bruteForce(puzzle, new_index, neighbor_vals):
 
     choices = [[min_pos[1], j] for j in symbols if j not in neighbor_vals[min_pos[1]]]
 
+    if len(choices) >= 2:
+        temp_choices = getSymbolChoices(neighbor_vals, len(choices))
+        if temp_choices:
+            choices = temp_choices
+    
     # create set of choices 
 
     for choice in choices: # process choices with the least number of spaces first
@@ -179,6 +201,5 @@ def isInvalid(puzzle, index, neighbor_vals):
     
     index_neighbor_vals = neighbor_vals[index]
     return puzzle[index] in index_neighbor_vals
-
 
 main()

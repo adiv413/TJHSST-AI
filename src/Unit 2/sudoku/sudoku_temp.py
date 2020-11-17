@@ -106,17 +106,47 @@ def main():
         if not result:
             incorrect += 1
             result = puzzle
-
+############################################### if symbol not in neighborvalues[i]
         end = time.time() - start
 
         if count < 10:
             print(str(count) + ': ' + puzzle)
             print('   ' + result, checksum, str(end) + 's')
-        else:
+        elif count < 100:
             print(str(count) + ': ' + puzzle)
             print('    ' + result, checksum, str(end) + 's')
+        else:
+            print(str(count) + ': ' + puzzle)
+            print('     ' + result, checksum, str(end) + 's')
     
     # print('total correct:', count - incorrect)
+
+def getSymbolChoices(neighbor_vals):
+    symbol_dot_list = []
+
+    for cset in constraint_sets:
+        for sym in symbols:
+            curr_sym_dot_list = [i for i in cset if i == '.' and sym not in neighbor_vals[i]]
+
+            if curr_sym_dot_list != 0:
+                symbol_dot_list.append(curr_sym_dot_list)
+
+    smallest = []
+    for i in symbol_dot_list:
+        if not smallest or len(smallest) > len(i):
+            smallest = i
+
+
+            
+            # if len(curr_sym_dot_list) != 0 and len(symbol_dot_list) == 0:
+            #     symbol_dot_list = curr_sym_dot_list
+
+            # elif len(curr_sym_dot_list) != 0 and len(curr_sym_dot_list) < len(symbol_dot_list):
+            #     symbol_dot_list = curr_sym_dot_list
+
+            # if len(symbol_dot_list) == 1:
+            #     return [[idx, sym] for idx in symbol_dot_list]
+    return [[idx, sym] for idx in smallest]
 
 def bruteForce(puzzle, new_index, neighbor_vals):
     # if new_index and isInvalid(puzzle, new_index, neighbor_vals): # the first call to bruteforce has new_index as None
@@ -139,26 +169,11 @@ def bruteForce(puzzle, new_index, neighbor_vals):
 
     choices = [[min_pos[1], j] for j in symbols if j not in neighbor_vals[min_pos[1]]]
 
-    if min_pos[0] > 1:
-        for i in neighbors:
-            for symbol in symbols:
-                if symbol not in neighbor_vals[i]:
-
-                    # for all dots in the set of neighbors
-                    neighbor_dots = {neighbor for neighbor in neighbors[i] if puzzle[neighbor] == '.'}
-
-                    # get the number of dots that the symbol can go in
-                    count = len({neighbor for neighbor in neighbor_dots if symbol not in neighbor_vals[neighbor]})
-
-                    if count < 2:
-                        # print(choices)
-                        choices = [[neighbor, symbol] for neighbor in neighbor_dots]
-                        # print(choices)
-                        break
-
-
+    if len(choices) >= 2:
+        temp_choices = getSymbolChoices(neighbor_vals)
+        if temp_choices:
+            choices = temp_choices
     
-
     # create set of choices 
 
     for choice in choices: # process choices with the least number of spaces first
@@ -189,6 +204,7 @@ def bruteForce(puzzle, new_index, neighbor_vals):
 def isSolved(puzzle):
     return '.' not in puzzle #and sum([int(i, 17) for i in puzzle]) == 405
 
+# not used
 def isInvalid(puzzle, index, neighbor_vals):
     # get the current character from each neighbor index (except the current one)
     # if the current character is in the set of neighbor characters, the puzzle is invalid
