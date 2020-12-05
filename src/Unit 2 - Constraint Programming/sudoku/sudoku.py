@@ -1,7 +1,9 @@
-import sys; args = sys.argv[1:]
-# Aditya Vasantharao, pd. 4
+# 
+import sys
 import math
 import time
+
+args = sys.argv[1:]
 
 symbols = []
 height = 0
