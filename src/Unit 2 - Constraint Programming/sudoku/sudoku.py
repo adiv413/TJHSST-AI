@@ -1,4 +1,11 @@
-# 
+# Aditya Vasantharao, pd. 4
+# Solves sudoku puzzles of any size using an optimized brute-force method
+# Usage: python sudoku.py [puzzle/text file]
+# Examples:
+#   python sudoku.py 63..........5....8..5674.......2......34.1.2.......345.....7..4.8.3..9.29471...8.
+#   python sudoku.py puzzles.txt
+# puzzles.txt contains 128 9x9 puzzles which increase in difficulty
+
 import sys
 import math
 import time
