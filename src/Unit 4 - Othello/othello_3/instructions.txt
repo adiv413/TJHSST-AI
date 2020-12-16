@@ -1,0 +1,15 @@
+This lab is an extension of the Othello 2 lab.  
+The input for this lab should support multiple moves instead of just a single move.  
+That is, the command line inputs to your script should be: an Othello board, a token, and a sequence of moves (either integers or A1 style).
+
+As before, all arguments are optional.  No board means to use the standard Othello starting board.  
+No move means to show the snapshot (see Othello 2 for an explanation) for the input board and exit.  
+The token defaults to the token that would be played in the absence of any passes.  
+However, if only one side could play on the input board, the token defaults to that side.
+
+If a move is a negative integer, it should be skipped.
+
+The output is a series of snapshots.  The first one is associated with the input board.  
+The remainder is one snapshot per non-negative move.
+
+An example input is: 44 29 22 52
