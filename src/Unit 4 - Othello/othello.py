@@ -1,5 +1,6 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
+import time
 
 def main():
     # setup
@@ -55,9 +56,9 @@ def main():
     bad_moves = [] # row 2/col B moves
     very_bad_moves = [] # corner-adjacent moves
 
-    # 1. random move for the first move
+    # 1. random move for the first 2 moves to hoard time
 
-    if board == '.' * 27 + 'ox......xo' + '.' * 27:
+    if board.count('x') + board.count('o') <= 7:
         final_move = possible_moves[0]
 
     # 2. go for a corner
@@ -68,12 +69,28 @@ def main():
                 final_move = move
                 break
 
-    # 3. if you can connect to a corner, play there (also collect info on which are edge moves, those are very good moves)
+    # 3. categorize moves based on position (row 2 col b + corner-adjacent)
+
+    if final_move is None:
+        for move in possible_moves:
+            if not (0 <= move <= 7 or 56 <= move <= 63 or move % 8 == 0 or move % 8 == 7) \
+                and (move % 8 == 1 or move % 8 == 6 or move // 8 == 1 or move // 8 == 6):
+
+                bad_moves.append(move)
+            elif (board[0] == '.' and (move == 1 or move == 8)) \
+                or (board[7] == '.' and (move == 6 or move == 15)) \
+                or (board[56] == '.' and (move == 48 or move == 57)) \
+                or (board[63] == '.' and (move == 55 or move == 62)):
+                
+                very_bad_moves.append(move)
+
+    # 4. if you can connect to a corner, play there (also collect info on which are edge moves, those are very good moves)
 
     if final_move is None:
         for move in possible_moves:
             if 0 <= move <= 7 or 56 <= move <= 63:
-                very_good_moves.append(move)
+                if move not in very_bad_moves:
+                    very_good_moves.append(move)
 
                 # check going to the right
                 temp = move + 1
@@ -92,7 +109,8 @@ def main():
                     break
 
             elif move % 8 == 0 or move % 8 == 7:
-                very_good_moves.append(move)
+                if move not in very_bad_moves:
+                    very_good_moves.append(move)
 
                 # check going up
                 temp = move - 8
@@ -110,7 +128,7 @@ def main():
                     final_move = move
                     break
 
-    # 4. if the move is at an edge and is surrounded by oppositeTokens (..x.x... -> o), play there
+    # 5. if the move is at an edge and is surrounded by oppositeTokens (..x.x... -> o), play there
 
     if final_move is None:
         for move in possible_moves:
@@ -123,36 +141,79 @@ def main():
                 break
                 
 
-    # 5. categorize moves based on position (row 2 col b + corner-adjacent)
+    # 6. finalize good moves
 
     if final_move is None:
-        for move in possible_moves:
-            if (move % 8 == 1 or move % 8 == 6 or move // 8 == 1 or move // 8 == 6) and move not in very_good_moves:
-                bad_moves.append(move)
-            elif board[0] == '.' and (move == 1 or move == 8) \
-                or board[7] == '.' and (move == 6 or move == 15) \
-                or board[56] == '.' and (move == 48 or move == 57) \
-                or board[63] == '.' and (move == 55 or move == 62):
-
-                very_bad_moves.append(move)
-
         already_seen = very_good_moves + bad_moves + very_bad_moves
 
         for move in possible_moves:
             if move not in already_seen:
                 good_moves.append(move)
 
-    # 6. Run algorithm to find the value of a move
-    # very good: +2, good: +1, bad: -1, very bad: -2
+    # 7. Run algorithm to find the value of a move
+    # move position weighting - very good: +2.8, good: +1, bad: -1, very bad: -2
 
+    # increase in score: raw_increase x 0.3
 
+    # number of opponent places to move: 12 / raw_number + (og_number - raw_number) * 0.4
+    # takes into account both the raw number of opponent moves as well as decrease in opponent moves
 
+    # total value of a move: increase in score + opponent move score + move position weighting
 
-
-
-
-    #DELETE THIS LATER LAST RESORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+    # I estimate that the best move values are going to be between 1-10, so the move position weighting
+    # between "very good" and "good" accounts for approximately 25% of the total value on average,
+    # with the function being 1.8 / (x + 2.8), where x is the value of a move before the move position weighting is added
+    
     if final_move is None:
+        # print(very_good_moves, good_moves, bad_moves, very_bad_moves)
+        # print(possible_moves)
+        best_move_value = None
+        best_move = None
+        move_categories = [very_good_moves, good_moves, bad_moves, very_bad_moves]
+        current_score = board.count(tokenToMove) - board.count(oppositeToken)
+        current_opp_moves = len(find_or_make_moves(board, oppositeToken, tokenToMove))
+
+        for i in range(len(move_categories)):
+            move_category = move_categories[i]
+
+            if final_move is None:
+                for move in move_category:
+                    new_board = find_or_make_moves(board, tokenToMove, oppositeToken, move) # make the move
+                    new_opp_moves = len(find_or_make_moves(new_board, oppositeToken, tokenToMove)) # find num of opp moves
+
+                    if new_opp_moves == 0: # if there arent any opp moves if we make this move
+                        final_move = move
+                        break
+
+                    new_score = new_board.count(tokenToMove) - new_board.count(oppositeToken)
+                    score_improvement = new_score - current_score
+                    opp_moves_improvement = current_opp_moves - new_opp_moves
+
+                    move_value = score_improvement * 0.3 + 12 / new_opp_moves + opp_moves_improvement * 0.4
+
+                    # account for move position weighting
+
+                    if i == 0: # very good moves
+                        move_value += 2.8
+                    elif i == 1: # good moves
+                        move_value += 1
+                    elif i == 2: # bad moves
+                        move_value -= 1
+                    elif i == 3: # very bad moves
+                        move_value -= 2
+
+                    # print(move, move_value, new_opp_moves, score_improvement)
+
+                    if best_move_value is None or move_value > best_move_value:
+                        best_move_value = move_value
+                        best_move = move
+        
+        if final_move is None:
+            final_move = best_move
+
+    # last resort in case something goes wrong
+    if final_move is None:
+        print('ERROR: LAST RESORT CONDITION MET')
         final_move = possible_moves[0]
 
     
