@@ -47,13 +47,10 @@ def main():
     oppositeToken = 'o' if tokenToMove == 'x' else 'x'
     
     # find final move
-    # begin heuristic
-
     possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
-    very_good_moves = [] # edge moves
-    good_moves = [] # normal moves
-    bad_moves = [] # row 2/col B moves
-    very_bad_moves = [] # corner-adjacent moves
+    edge_moves = []
+    good_moves = []
+    bad_moves = []
 
     # 1. random move for the first move
 
@@ -68,12 +65,12 @@ def main():
                 final_move = move
                 break
 
-    # 3. if you can connect to a corner, play there (also collect info on which are edge moves, those are very good moves)
+    # 3. if you can connect to a corner, play there (also collect info on which are edge moves)
 
     if final_move is None:
         for move in possible_moves:
             if 0 <= move <= 7 or 56 <= move <= 63:
-                very_good_moves.append(move)
+                edge_moves.append(move)
 
                 # check going to the right
                 temp = move + 1
@@ -92,7 +89,7 @@ def main():
                     break
 
             elif move % 8 == 0 or move % 8 == 7:
-                very_good_moves.append(move)
+                edge_moves.append(move)
 
                 # check going up
                 temp = move - 8
@@ -109,46 +106,6 @@ def main():
                 if move // 8 != 6 and temp // 8 == 7 and board[temp] == tokenToMove:
                     final_move = move
                     break
-
-    # 4. if the move is at an edge and is surrounded by oppositeTokens (..x.x... -> o), play there
-
-    if final_move is None:
-        for move in possible_moves:
-            if (0 <= move <= 7 or 56 <= move <= 63) and board[move + 1] == board[move - 1] == oppositeToken:
-                final_move = move
-                break
-
-            elif (move % 8 == 0 or move % 8 == 7) and board[move + 8] == board[move - 8] == oppositeToken:
-                final_move = move
-                break
-                
-
-    # 5. categorize moves based on position (row 2 col b + corner-adjacent)
-
-    if final_move is None:
-        for move in possible_moves:
-            if (move % 8 == 1 or move % 8 == 6 or move // 8 == 1 or move // 8 == 6) and move not in very_good_moves:
-                bad_moves.append(move)
-            elif board[0] == '.' and (move == 1 or move == 8) \
-                or board[7] == '.' and (move == 6 or move == 15) \
-                or board[56] == '.' and (move == 48 or move == 57) \
-                or board[63] == '.' and (move == 55 or move == 62):
-
-                very_bad_moves.append(move)
-
-        already_seen = very_good_moves + bad_moves + very_bad_moves
-
-        for move in possible_moves:
-            if move not in already_seen:
-                good_moves.append(move)
-
-    # 6. Run algorithm to find the value of a move
-    # very good: +2, good: +1, bad: -1, very bad: -2
-
-
-
-
-
 
 
     #DELETE THIS LATER LAST RESORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT

@@ -1,0 +1,25 @@
+For this lab, submit a script that, when given a board and a token on the command line, 
+will return a preferred move using a simple, non-recursive strategy.  Scoring is based 
+on the sum of the total number of the script's tokens at the end of each game divided by 
+the sum of all the tokens at the end of each game.  Trying for a value in the 72 to 75% range.
+
+There are some time specific time limitations.  The submitted script is allowed .5 seconds 
+per move.  If it is fast on a particular move (and for this lab, it should be fast on all of them),
+then it may hoard the extra time and use it in a future round.  This consideration, however, 
+motivates the following architecture: the list of all possible moves should be printed at the 
+start of the script.  ONLY SUBSEQUENT to this should the script investigate which move is most beneficial.  
+That means that Lab 3 can serve as a base for this code.  Note that although the school's Othello server
+supports time hoarding, the school competition currently does not.
+
+The submitted script will play 100 scripts against Random.  Any error on its part (ie. script error, 
+no move given, or illegal move given) will cause the entire test to immediately terminate.  
+If Labs 1, 2 or 3 are coming in at 100%, however, this should not be an issue.  Timeout is not
+considered an error, and will be a normal occurrence starting from Lab 7.
+
+The two lowest scoring games that your code achieves will be shown.  
+You can paste the sequence as a command line argument to Othello Lab 3 and it will display the game.  
+There are a few negative numbers that may be observed in this sequence (negative numbers are informational 
+only and the reason that your lab 3 code ignores them): -1 means there is a pass at that point. 
+-2 means a timeout.  -3 means the script asked for an illegal move (this usually happens because some other
+debugging information was being printed), -4 means the script output no moves (which means that the basic 
+instructions were not followed), -5 means a script error.  You should not see any numbers less than -2.
