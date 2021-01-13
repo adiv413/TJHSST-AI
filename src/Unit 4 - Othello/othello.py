@@ -1,60 +1,76 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
 import time
+import random
 
 def main():
-    # setup
+    if not args:
+        playTournament(100)
 
-    board = '.' * 27 + 'ox......xo' + '.' * 27
-    tokenToMove = ''
-    oppositeToken = ''
-    possible_moves = []
-    first_run = args == []
-    final_move = None
+    else:
+        # setup
 
-    while args or first_run:
-        if args and args[0].startswith('-'):
-            args.pop(0)
-            continue
+        board = '.' * 27 + 'ox......xo' + '.' * 27
+        tokenToMove = ''
+        oppositeToken = ''
+        possible_moves = []
+        first_run = args == []
 
-        if args and len(args[0]) == 64:
-            board = args[0].lower()
-            args.pop(0)
+        while args or first_run:
+            if args and args[0].startswith('-'):
+                args.pop(0)
+                continue
 
-        if args and args[0].isalpha():
-            tokenToMove = args[0].lower()
-            args.pop(0)
-        elif not tokenToMove:
-            num_tokens = 64 - board.count('.')
+            if args and len(args[0]) == 64:
+                board = args[0].lower()
+                args.pop(0)
 
-            if num_tokens % 2 == 0:
-                tokenToMove = 'x'
-            else:
-                tokenToMove = 'o'
+            if args and args[0].isalpha():
+                tokenToMove = args[0].lower()
+                args.pop(0)
+            elif not tokenToMove:
+                num_tokens = 64 - board.count('.')
 
-        if args and args[0]:
-            if args[0].isdigit():
-                temp_move = int(args[0])
-                if 0 <= temp_move <= 63:
-                    possible_moves.append(temp_move)
-                    args.pop(0)
-            else:
-                if len(args[0]) == 2 and 'a' <= args[0][0].lower() <= 'h' and args[0][1].isdigit() and 0 <= int(args[0][1]) <= 8:
-                    possible_moves.append((int(args[0][1]) - 1) * 8 + ord(args[0][0].lower()) - ord('a'))
-                    args.pop(0)
+                if num_tokens % 2 == 0:
+                    tokenToMove = 'x'
+                else:
+                    tokenToMove = 'o'
 
-        first_run = False
+            if args and args[0]:
+                if args[0].isdigit():
+                    temp_move = int(args[0])
+                    if 0 <= temp_move <= 63:
+                        possible_moves.append(temp_move)
+                        args.pop(0)
+                else:
+                    if len(args[0]) == 2 and 'a' <= args[0][0].lower() <= 'h' and args[0][1].isdigit() and 0 <= int(args[0][1]) <= 8:
+                        possible_moves.append((int(args[0][1]) - 1) * 8 + ord(args[0][0].lower()) - ord('a'))
+                        args.pop(0)
 
-    oppositeToken = 'o' if tokenToMove == 'x' else 'x'
-    
-    # find final move
+            first_run = False
+
+        oppositeToken = 'o' if tokenToMove == 'x' else 'x'
+
+        findBestMove(board, tokenToMove, oppositeToken)
+
+# finds the optimal move
+
+def findBestMove(board, tokenToMove, oppositeToken, verbose=True):
     # begin heuristic
 
+    final_move = None
     possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
     very_good_moves = [] # edge moves
     good_moves = [] # normal moves
     bad_moves = [] # row 2/col B moves
     very_bad_moves = [] # corner-adjacent moves
+    negamax_output = []
+
+    # negamax: if we're in the last 9 moves of the game, run negamax
+
+    if board.count('.') < 10:
+        negamax_output = negamax(board, tokenToMove, oppositeToken)
+        final_move = negamax_output[-1]
 
     # 1. random move for the first 2 moves to hoard time
 
@@ -161,7 +177,7 @@ def main():
     # total value of a move: increase in score + opponent move score + move position weighting
 
     # I estimate that the best move values are going to be between 1-10, so the move position weighting
-    # between "very good" and "good" accounts for approximately 25% of the total value on average,
+    # between 'very good' and 'good' accounts for approximately 25% of the total value on average,
     # with the function being 1.8 / (x + 2.8), where x is the value of a move before the move position weighting is added
     
     if final_move is None:
@@ -215,52 +231,55 @@ def main():
     if final_move is None:
         print('ERROR: LAST RESORT CONDITION MET')
         final_move = possible_moves[0]
-
     
-
-    
-
-    # first snapshot 
-    final_board = find_or_make_moves(board, tokenToMove, oppositeToken, final_move)
-
     tokenThatMoved = tokenToMove
-    tokenToMove, oppositeToken = oppositeToken, tokenToMove
 
-    final_moves = find_or_make_moves(final_board, tokenToMove, oppositeToken)
+    if verbose:
+        # first snapshot 
+        final_board = find_or_make_moves(board, tokenToMove, oppositeToken, final_move)
 
-    print()
-
-    for i in range(8):
-        for j in range(8):
-            print(board[i * 8 + j], end=' ')
-        print()
-
-    print(board)
-
-    print(str(board.count('x')) + '/' + str(board.count('o')))
-
-    print('Possible moves for', tokenThatMoved + ':', possible_moves)
-
-    print()
-
-    # second snapshot
-
-    for i in range(8):
-        for j in range(8):
-            print(final_board[i * 8 + j], end=' ')
-        print()
-
-    print(final_board)
-
-    if '.' in final_board and final_moves:
-        print('Possible moves for', tokenToMove + ':', final_moves)
-    elif '.' in final_board and not final_moves:
+        tokenThatMoved = tokenToMove
         tokenToMove, oppositeToken = oppositeToken, tokenToMove
-        print('Possible moves for', tokenToMove + ':', find_or_make_moves(final_board, tokenToMove, oppositeToken))
 
-    print(str(final_board.count('x')) + '/' + str(final_board.count('o')))
+        final_moves = find_or_make_moves(final_board, tokenToMove, oppositeToken)
 
-    print(tokenThatMoved, 'moves to', final_move)
+        print()
+
+        for i in range(8):
+            for j in range(8):
+                print(board[i * 8 + j], end=' ')
+            print()
+
+        print(board)
+
+        print(str(board.count('x')) + '/' + str(board.count('o')))
+
+        print('Possible moves for', tokenThatMoved + ':', possible_moves)
+
+        print()
+
+        # second snapshot
+
+        for i in range(8):
+            for j in range(8):
+                print(final_board[i * 8 + j], end=' ')
+            print()
+
+        print(final_board)
+
+        if '.' in final_board and final_moves:
+            print('Possible moves for', tokenToMove + ':', final_moves)
+        elif '.' in final_board and not final_moves:
+            tokenToMove, oppositeToken = oppositeToken, tokenToMove
+            print('Possible moves for', tokenToMove + ':', find_or_make_moves(final_board, tokenToMove, oppositeToken))
+
+        print(str(final_board.count('x')) + '/' + str(final_board.count('o')))
+        print(tokenThatMoved, 'moves to', final_move)
+
+        if negamax_output:
+            print('Min score: ' + str(negamax_output[0]) + '; move sequence:', *(negamax_output[1:]))
+
+    return final_move
 
 # returns the possible set of moves if moveIndex is not provided, otherwise returns the updated board    
 
@@ -453,4 +472,123 @@ def find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=None):
 
     return moves
 
-main()
+
+def playGame(myTkn):
+    board = '.' * 27 + 'ox......xo' + '.' * 27
+    tokenToMove = myTkn
+    oppositeToken = 'o' if myTkn == 'x' else 'x'
+    moveSequence = []
+
+    while True:
+        if '.' not in board:
+            break
+
+        possibleMoves = find_or_make_moves(board, tokenToMove, oppositeToken)
+        if possibleMoves:
+            move = None
+
+            if tokenToMove == myTkn:
+                move = findBestMove(board, tokenToMove, oppositeToken, verbose=False)
+            else:
+                move = random.choice(possibleMoves)
+
+            moveSequence.append(move)
+            board = find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=move)
+            tokenToMove, oppositeToken = oppositeToken, tokenToMove
+            
+        else:
+            # tokenToMove passes, oppositeToken's turn
+            tokenToMove, oppositeToken = oppositeToken, tokenToMove
+            
+            possibleMoves = find_or_make_moves(board, tokenToMove, oppositeToken)
+
+            if possibleMoves:
+                move = None
+
+                if tokenToMove == myTkn:
+                    move = findBestMove(board, tokenToMove, oppositeToken, verbose=False)
+                else:
+                    move = random.choice(possibleMoves)
+
+                moveSequence.append(move)
+                board = find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=move)
+                tokenToMove, oppositeToken = oppositeToken, tokenToMove
+
+            else:
+                # both teams pass, end of game
+                break
+            
+    return [moveSequence, board.count(myTkn), board.count('o' if myTkn == 'x' else 'x')]
+
+def playTournament(gameCnt):
+    myScore = 0
+    oppScore = 0
+    gamesWon = 0
+    gamesTied = 0
+    gamesLost = 0
+    games = []
+
+    for i in range(gameCnt):
+        result = playGame('xo'[i % 2])
+        myScore += result[1]
+        oppScore += result[2]
+
+        games.append((result[1] - result[2], i, result[0]))
+
+        print(result[1] - result[2], end=' ')
+
+        if result[1] - result[2] > 0:
+            gamesWon += 1
+        elif result[1] - result[2] == 0:
+            gamesTied += 1
+        else:
+            gamesLost += 1
+
+        if i % 10 == 9:
+            print()
+    
+    print('My token count:', myScore)
+    print('Opponent token count:', oppScore)
+    print('Total:', myScore + oppScore)
+    print('Score:', str(myScore / (myScore + oppScore) * 100)[:4] + '%')
+    print('Win %:', gamesWon / gameCnt)
+    print('Draw %:', gamesTied / gameCnt)
+    print('Lose %:', gamesLost / gameCnt)
+
+    worst_game = min(games)
+    print('Game', worst_game[1], 'as', 'xo'[worst_game[1] % 2], '=>', worst_game[0], *worst_game[2])
+    
+    games.remove(worst_game)
+    
+    worst_game = min(games)
+    print('Game', worst_game[1], 'as', 'xo'[worst_game[1] % 2], '=>', worst_game[0], *worst_game[2])
+
+def negamax(board, tokenToMove, oppositeToken):
+    possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
+
+    if not possible_moves:
+        # curr token cannot move, pass
+        possible_moves = find_or_make_moves(board, oppositeToken, tokenToMove)
+
+        if not possible_moves:
+            # double skip or end of game 
+            return [board.count(tokenToMove) - board.count(oppositeToken)]
+        
+        result = negamax(board, oppositeToken, tokenToMove)
+
+        return [-result[0]] + result[1:] + [-1]
+
+    bestSoFar = [-65]
+
+    for mv in possible_moves:
+        newBrd = find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=mv)
+        result = negamax(newBrd, oppositeToken, tokenToMove)
+
+        if -result[0] > bestSoFar[0]:
+            bestSoFar = [-result[0]] + result[1:] + [mv]
+
+    return bestSoFar
+
+
+if __name__ == '__main__': 
+    main()
