@@ -1,0 +1,17 @@
+A short lab to find the symmetries of a rectangular board
+
+Submitted script is given at least one, and possibly two command line arguments.  
+The first argument represents a rectangular board, laid out by rows (such as an 
+Othello, Sudoku, Tic-Tac-Toe, or slider boards).  The second argument, if provided, 
+is an integer indicating the width of the board.  If it is not provided, then the 
+width should be taken to be the smallest integer that evenly divides the length of 
+the board that is no less than the square root of the length of the board.
+
+The script is to output the set of all possible rotations and reflections of the
+board as strings.  Each output string should go onto its own line.  There should be nothing 
+else on that line (no commas, space, braces, etc.).  Do not print duplicates.
+
+The grader, after removing any output line with a decimal number, will extract the final n 
+lines of the remaining output having exactly k characters (excluding newlines), where n is 
+the number of output values expected and k is the length of the input board.  The order of 
+the extracted lines does not matter.  There are 20 test cases for this lab.
