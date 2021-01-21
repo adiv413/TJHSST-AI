@@ -1,11 +1,24 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
+LIMIT_AB = 14
 import time
 import random
 
 def main():
     if not args:
-        playTournament(100)
+        scores = []
+        times = []
+        try:
+            for i in range(1, LIMIT_AB + 1):
+                result = playTournament(100, i)
+                scores.append(result[0][:-1])
+                times.append(str(result[1])[:5])
+        except KeyboardInterrupt:
+            pass
+
+        print('\n\n------------FINAL STATS (scores, times)------------')
+        print(*scores)
+        print(*times)
 
     else:
         # setup
@@ -55,7 +68,7 @@ def main():
 
 # finds the optimal move
 
-def findBestMove(board, tokenToMove, oppositeToken, verbose=True):
+def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     # begin heuristic
 
     final_move = None
@@ -68,8 +81,8 @@ def findBestMove(board, tokenToMove, oppositeToken, verbose=True):
 
     # negamax: if we're in the last 9 moves of the game, run negamax
 
-    if board.count('.') < 10:
-        negamax_output = negamax(board, tokenToMove, oppositeToken)
+    if board.count('.') < limitNM:
+        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
         final_move = negamax_output[-1]
 
     # 1. random move for the first 2 moves to hoard time
@@ -473,7 +486,7 @@ def find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=None):
     return moves
 
 
-def playGame(myTkn):
+def playGame(myTkn, limitNM):
     board = '.' * 27 + 'ox......xo' + '.' * 27
     tokenToMove = myTkn
     oppositeToken = 'o' if myTkn == 'x' else 'x'
@@ -488,7 +501,7 @@ def playGame(myTkn):
             move = None
 
             if tokenToMove == myTkn:
-                move = findBestMove(board, tokenToMove, oppositeToken, verbose=False)
+                move = findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=False)
             else:
                 move = random.choice(possibleMoves)
 
@@ -506,7 +519,7 @@ def playGame(myTkn):
                 move = None
 
                 if tokenToMove == myTkn:
-                    move = findBestMove(board, tokenToMove, oppositeToken, verbose=False)
+                    move = findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=False)
                 else:
                     move = random.choice(possibleMoves)
 
@@ -520,7 +533,8 @@ def playGame(myTkn):
             
     return [moveSequence, board.count(myTkn), board.count('o' if myTkn == 'x' else 'x')]
 
-def playTournament(gameCnt):
+def playTournament(gameCnt, limitNM):
+    start = time.time()
     myScore = 0
     oppScore = 0
     gamesWon = 0
@@ -528,8 +542,11 @@ def playTournament(gameCnt):
     gamesLost = 0
     games = []
 
+    print('-------------------------------------INDIVIDUAL GAME RESULTS (LIMIT:', limitNM, ')-------------------------------------')
+    print()
+    
     for i in range(gameCnt):
-        result = playGame('xo'[i % 2])
+        result = playGame('xo'[i % 2], limitNM)
         myScore += result[1]
         oppScore += result[2]
 
@@ -562,8 +579,18 @@ def playTournament(gameCnt):
     
     worst_game = min(games)
     print('Game', worst_game[1], 'as', 'xo'[worst_game[1] % 2], '=>', worst_game[0], *worst_game[2])
+    elapsed = time.time() - start
 
-def negamax(board, tokenToMove, oppositeToken):
+    print()
+    print('-------------------------------------TOTAL TOURNAMENT RESULTS (LIMIT:', limitNM, ')-------------------------------------')
+    print()
+    print(str(myScore / (myScore + oppScore) * 100)[:4] + '%', elapsed)
+    print('\n\n\n')
+
+    return str(myScore / (myScore + oppScore) * 100)[:4] + '%', elapsed
+
+def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper):
+    lower = raw_lower
     possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
 
     if not possible_moves:
@@ -574,18 +601,27 @@ def negamax(board, tokenToMove, oppositeToken):
             # double skip or end of game 
             return [board.count(tokenToMove) - board.count(oppositeToken)]
         
-        result = negamax(board, oppositeToken, tokenToMove)
+        result = alphabeta(board, oppositeToken, tokenToMove, -upper, -lower)
 
         return [-result[0]] + result[1:] + [-1]
 
-    bestSoFar = [-65]
+    bestSoFar = [lower - 1]
 
     for mv in possible_moves:
         newBrd = find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=mv)
-        result = negamax(newBrd, oppositeToken, tokenToMove)
+        result = alphabeta(newBrd, oppositeToken, tokenToMove, -upper, -lower)
 
-        if -result[0] > bestSoFar[0]:
-            bestSoFar = [-result[0]] + result[1:] + [mv]
+        score = -result[0]
+
+        if score < lower:
+            continue
+        if score > upper:
+            return [score]
+
+        if score > bestSoFar[0]:
+            bestSoFar = [score] + result[1:] + [mv]
+
+        lower = score + 1
 
     return bestSoFar
 
