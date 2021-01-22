@@ -9,10 +9,10 @@ def main():
         scores = []
         times = []
         try:
-            for i in range(1, LIMIT_AB + 1):
-                result = playTournament(100, i)
-                scores.append(result[0][:-1])
-                times.append(str(result[1])[:5])
+            # for i in range(1, LIMIT_AB + 1):
+            result = playTournament(100, LIMIT_AB)
+            scores.append(result[0][:-1])
+            times.append(str(result[1])[:5])
         except KeyboardInterrupt:
             pass
 
@@ -64,7 +64,7 @@ def main():
 
         oppositeToken = 'o' if tokenToMove == 'x' else 'x'
 
-        findBestMove(board, tokenToMove, oppositeToken)
+        findBestMove(board, tokenToMove, oppositeToken, LIMIT_AB)
 
 # finds the optimal move
 
@@ -79,7 +79,7 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     very_bad_moves = [] # corner-adjacent moves
     negamax_output = []
 
-    # negamax: if we're in the last 9 moves of the game, run negamax
+    # negamax: if we're in the last LIMIT_AB moves of the game, run negamax
 
     if board.count('.') < limitNM:
         negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
