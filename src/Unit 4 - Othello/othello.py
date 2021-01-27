@@ -1,6 +1,7 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
 LIMIT_AB = 14
+recur_limit = 5
 import time
 import random
 
@@ -10,7 +11,7 @@ def main():
         times = []
         try:
             # for i in range(1, LIMIT_AB + 1):
-            result = playTournament(100, LIMIT_AB)
+            result = playTournament(6, LIMIT_AB)
             scores.append(result[0][:-1])
             times.append(str(result[1])[:5])
         except KeyboardInterrupt:
@@ -66,12 +67,9 @@ def main():
 
         findBestMove(board, tokenToMove, oppositeToken, LIMIT_AB)
 
-# finds the optimal move
-
-def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
-    # begin heuristic
-
+def findBestMoveHeuristic(board, tokenToMove, oppositeToken):
     final_move = None
+    best_move_value = None
     possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
     very_good_moves = [] # edge moves
     good_moves = [] # normal moves
@@ -79,15 +77,9 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     very_bad_moves = [] # corner-adjacent moves
     negamax_output = []
 
-    # negamax: if we're in the last LIMIT_AB moves of the game, run negamax
+    # 1. random move for the first move to hoard time
 
-    if board.count('.') < limitNM:
-        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
-        final_move = negamax_output[-1]
-
-    # 1. random move for the first 2 moves to hoard time
-
-    if board.count('x') + board.count('o') <= 7:
+    if board.count('x') + board.count('o') <= 5:
         final_move = possible_moves[0]
 
     # 2. go for a corner
@@ -179,6 +171,11 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
             if move not in already_seen:
                 good_moves.append(move)
 
+
+    # 6.5. finalize score for move if already selected
+    if final_move is not None:
+        best_move_value = 10
+
     # 7. Run algorithm to find the value of a move
     # move position weighting - very good: +2.8, good: +1, bad: -1, very bad: -2
 
@@ -196,7 +193,6 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     if final_move is None:
         # print(very_good_moves, good_moves, bad_moves, very_bad_moves)
         # print(possible_moves)
-        best_move_value = None
         best_move = None
         move_categories = [very_good_moves, good_moves, bad_moves, very_bad_moves]
         current_score = board.count(tokenToMove) - board.count(oppositeToken)
@@ -212,6 +208,7 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
 
                     if new_opp_moves == 0: # if there arent any opp moves if we make this move
                         final_move = move
+                        best_move_value = 12
                         break
 
                     new_score = new_board.count(tokenToMove) - new_board.count(oppositeToken)
@@ -244,6 +241,25 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     if final_move is None:
         print('ERROR: LAST RESORT CONDITION MET')
         final_move = possible_moves[0]
+
+    return final_move, best_move_value
+
+# finds the optimal move
+
+def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
+    final_move = None
+
+    # if we're in the last LIMIT_AB moves of the game, run negamax all the way
+
+    if board.count('.') < limitNM:
+        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
+        final_move = negamax_output[-1]
+    else:
+        # otherwise, run negamax up until a certain limit
+        
+        
+        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, recur_limit)
+        final_move = negamax_output[-1]
     
     tokenThatMoved = tokenToMove
 
@@ -267,7 +283,7 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
 
         print(str(board.count('x')) + '/' + str(board.count('o')))
 
-        print('Possible moves for', tokenThatMoved + ':', possible_moves)
+        print('Possible moves for', tokenThatMoved + ':', find_or_make_moves(board, tokenToMove, oppositeToken))
 
         print()
 
@@ -552,7 +568,7 @@ def playTournament(gameCnt, limitNM):
 
         games.append((result[1] - result[2], i, result[0]))
 
-        print(result[1] - result[2], end=' ')
+        print(result[1] - result[2], end=' ', flush=True)
 
         if result[1] - result[2] > 0:
             gamesWon += 1
@@ -563,6 +579,8 @@ def playTournament(gameCnt, limitNM):
 
         if i % 10 == 9:
             print()
+    
+    print()
     
     print('My token count:', myScore)
     print('Opponent token count:', oppScore)
@@ -589,9 +607,41 @@ def playTournament(gameCnt, limitNM):
 
     return str(myScore / (myScore + oppScore) * 100)[:4] + '%', elapsed
 
-def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper):
+# ground truth (my tokens - opp tokens) scaling equation:
+# y = 0.000035(x+5)^3 - 0.0002x^2 + 0.28x
+# where x is the score and y is the value in my units so that it is on the same level with my heuristic
+
+def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None):
+    # print('level:', level)
+    
     lower = raw_lower
     possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
+
+    # bottom level, base case
+
+    if level is not None and level <= 0:
+        # skip
+        if not possible_moves:
+            skipped_possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
+
+            # if the game is already over
+
+            if not skipped_possible_moves:
+                curr_score = board.count(tokenToMove) - board.count(oppositeToken)
+                scaled_score = 0.000035 * ((curr_score + 5) ^ 3) - 0.0002 * (curr_score ^ 2) + 0.28 * curr_score
+                return [scaled_score]
+
+            else:
+                # just recur one more time
+
+                result = alphabeta(board, oppositeToken, tokenToMove, -upper, -lower, 1)
+                return [-result[0]] + result[1:] + [-1]
+
+        else:
+            # use my heuristic
+            ret = findBestMoveHeuristic(board, tokenToMove, oppositeToken)
+            return [ret[1], ret[0]]
+
 
     if not possible_moves:
         # curr token cannot move, pass
@@ -599,19 +649,35 @@ def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper):
 
         if not possible_moves:
             # double skip or end of game 
-            return [board.count(tokenToMove) - board.count(oppositeToken)]
+            curr_score = board.count(tokenToMove) - board.count(oppositeToken)
+            scaled_score = 0.000035 * ((curr_score + 5) ^ 3) - 0.0002 * (curr_score ^ 2) + 0.28 * curr_score
+            return [scaled_score]
+
+        result = None
         
-        result = alphabeta(board, oppositeToken, tokenToMove, -upper, -lower)
+        if level is None:
+            result = alphabeta(board, oppositeToken, tokenToMove, -upper, -lower)
+        else:
+            result = alphabeta(board, oppositeToken, tokenToMove, -upper, -lower, level - 1)
 
         return [-result[0]] + result[1:] + [-1]
 
     bestSoFar = [lower - 1]
-
+    # print()
     for mv in possible_moves:
         newBrd = find_or_make_moves(board, tokenToMove, oppositeToken, moveIndex=mv)
-        result = alphabeta(newBrd, oppositeToken, tokenToMove, -upper, -lower)
+        # new_possible_moves = find_or_make_moves(newBrd, oppositeToken, tokenToMove)
+
+        if level is None:
+            result = alphabeta(newBrd, oppositeToken, tokenToMove, -upper, -lower)
+        else:
+            result = alphabeta(newBrd, oppositeToken, tokenToMove, -upper, -lower, level - 1)
+            
+        
 
         score = -result[0]
+
+        
 
         if score < lower:
             continue
@@ -624,7 +690,6 @@ def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper):
         lower = score + 1
 
     return bestSoFar
-
 
 if __name__ == '__main__': 
     main()
