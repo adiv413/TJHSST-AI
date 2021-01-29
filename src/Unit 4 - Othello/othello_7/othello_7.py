@@ -1,6 +1,7 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
 LIMIT_AB = 14
+num_games = 6
 recur_limit = 5
 import time
 import random
@@ -10,8 +11,7 @@ def main():
         scores = []
         times = []
         try:
-            # for i in range(1, LIMIT_AB + 1):
-            result = playTournament(6, LIMIT_AB)
+            result = playTournament(num_games, LIMIT_AB)
             scores.append(result[0][:-1])
             times.append(str(result[1])[:5])
         except KeyboardInterrupt:
