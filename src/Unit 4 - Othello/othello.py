@@ -256,10 +256,16 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
         final_move = negamax_output[-1]
     else:
         # otherwise, run negamax up until a certain limit
-        
-        
-        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, recur_limit)
+        if verbose:
+            # iterative deepening
+            for i in range(recur_limit // 2 + 1):
+                negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, i * 2 + 1)
+                print(negamax_output[-1])
+
+        else:
+            negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, recur_limit)
         final_move = negamax_output[-1]
+        
     
     tokenThatMoved = tokenToMove
 
@@ -307,7 +313,7 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
 
         if negamax_output:
             print('Min score: ' + str(negamax_output[0]) + '; move sequence:', *(negamax_output[1:]))
-
+            
     return final_move
 
 # returns the possible set of moves if moveIndex is not provided, otherwise returns the updated board    
