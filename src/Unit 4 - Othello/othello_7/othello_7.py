@@ -1,7 +1,7 @@
 import sys; args = sys.argv[1:]
 # Aditya Vasantharao, pd. 4
-LIMIT_AB = 12
-num_games = 6
+LIMIT_AB = 14
+num_games = 20
 recur_limit = 5
 import time
 import random
@@ -215,7 +215,7 @@ def findBestMoveHeuristic(board, tokenToMove, oppositeToken):
                     score_improvement = new_score - current_score
                     opp_moves_improvement = current_opp_moves - new_opp_moves
 
-                    move_value = score_improvement * 0.3 + 12 / new_opp_moves + opp_moves_improvement * 0.4
+                    move_value = score_improvement * 0.4 + 12 / new_opp_moves + opp_moves_improvement * 0.4
 
                     # account for move position weighting
 
@@ -224,9 +224,9 @@ def findBestMoveHeuristic(board, tokenToMove, oppositeToken):
                     elif i == 1: # good moves
                         move_value += 1
                     elif i == 2: # bad moves
-                        move_value -= 1
+                        move_value -= 3
                     elif i == 3: # very bad moves
-                        move_value -= 2
+                        move_value -= 10
 
                     # print(move, move_value, new_opp_moves, score_improvement)
 
@@ -258,6 +258,8 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
     # if we're in the last LIMIT_AB moves of the game, run negamax all the way
 
     if board.count('.') < limitNM:
+        if verbose:
+            print(alphabeta(board, tokenToMove, oppositeToken, -65, 65, 3)[-1]) # just in case
         negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
         final_move = negamax_output[-1]
     else:
