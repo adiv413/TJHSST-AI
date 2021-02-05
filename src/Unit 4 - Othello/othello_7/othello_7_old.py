@@ -6,29 +6,6 @@ recur_limit = 5
 import time
 import random
 
-corners = [0, 7, 56, 63]
-csquares = [(0, 1), (7, 6), (0, 8), (7, 15), (56, 48), (63, 55), (56, 57), (63, 62)]
-csquares_worse = [(0, 9), (7, 14), (56, 49), (63, 54)]
-
-row2colb_top = [(-8, j) for j in range(10,14)]
-row2colb_bottom = [(8, j) for j in range(50, 54)]
-row2colb_left = [(-1, 17 + 8 * j) for j in range(4)]
-row2colb_right = [(1, 22 + 8 * j) for j in range(4)]
-
-row2colb = row2colb_top + row2colb_bottom + row2colb_left + row2colb_right
-
-edge_top = [j for j in range(1, 7)]
-edge_bottom = [j for j in range(57, 63)]
-edge_left = [8 + 8 * j for j in range(6)]
-edge_right = [15 + 8 * j for j in range(6)]
-
-edges = edge_top + edge_bottom + edge_left + edge_right
-
-inner_diagonals = [18, 27, 36, 45, 21, 28, 35, 42]
-
-positions = {"corners" : corners, "csquares" : csquares, "csquares_worse" : csquares_worse, \
-    "row2colb" : row2colb, "edges": edges, "inner_diagonals" : inner_diagonals}
-
 def main():
     if not args:
         scores = []
@@ -90,64 +67,182 @@ def main():
 
         findBestMove(board, tokenToMove, oppositeToken, LIMIT_AB)
 
+def findBestMoveHeuristic(board, tokenToMove, oppositeToken):
+    final_move = None
+    best_move_value = None
+    possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
+    very_good_moves = [] # edge moves
+    good_moves = [] # normal moves
+    bad_moves = [] # row 2/col B moves
+    very_bad_moves = [] # corner-adjacent moves
+    negamax_output = []
 
-# Heuristic is calculated using token counts, mobility, and square valuation
+    # 1. random move for the first move to hoard time
 
-# token counts: range = [-5,5], dom = [0,1], x = current player's token cnt, a = total num tokens on board
-# value = (a/50) * (11**x - 6)
+    if board.count('x') + board.count('o') <= 5:
+        final_move = possible_moves[0]
 
-# mobility:
-# if x == 0: -24
-# if x == 1: -18
-# else: x ** 1.5 - 8
+    # 2. go for a corner
 
-# position: 
+    if final_move is None:
+        for move in possible_moves:
+            if move == 0 or move == 7 or move == 56 or move == 63:
+                final_move = move
+                break
+
+    # 3. categorize moves based on position (row 2 col b + corner-adjacent)
+
+    if final_move is None:
+        for move in possible_moves:
+            if not (0 <= move <= 7 or 56 <= move <= 63 or move % 8 == 0 or move % 8 == 7) \
+                and (move % 8 == 1 or move % 8 == 6 or move // 8 == 1 or move // 8 == 6):
+
+                bad_moves.append(move)
+            elif (board[0] == '.' and (move == 1 or move == 8)) \
+                or (board[7] == '.' and (move == 6 or move == 15)) \
+                or (board[56] == '.' and (move == 48 or move == 57)) \
+                or (board[63] == '.' and (move == 55 or move == 62)):
+                
+                very_bad_moves.append(move)
+
+    # 4. if you can connect to a corner, play there (also collect info on which are edge moves, those are very good moves)
+
+    if final_move is None:
+        for move in possible_moves:
+            if 0 <= move <= 7 or 56 <= move <= 63:
+                if move not in very_bad_moves:
+                    very_good_moves.append(move)
+
+                # check going to the right
+                temp = move + 1
+                while temp % 8 != 7 and board[temp] == oppositeToken: temp += 1
+
+                if move % 8 != 6 and temp % 8 == 7 and board[temp] == tokenToMove:
+                    final_move = move
+                    break
+
+                # check going to the left
+                temp = move - 1
+                while temp % 8 != 0 and board[temp] == oppositeToken: temp -= 1
+
+                if move % 8 != 1 and temp % 8 == 0 and board[temp] == tokenToMove:
+                    final_move = move
+                    break
+
+            elif move % 8 == 0 or move % 8 == 7:
+                if move not in very_bad_moves:
+                    very_good_moves.append(move)
+
+                # check going up
+                temp = move - 8
+                while temp // 8 != 0 and board[temp] == oppositeToken: temp -= 8
+
+                if move // 8 != 1 and temp // 8 == 0 and board[temp] == tokenToMove:
+                    final_move = move
+                    break
+
+                # check going down
+                temp = move + 8
+                while temp // 8 != 7 and board[temp] == oppositeToken: temp += 8
+
+                if move // 8 != 6 and temp // 8 == 7 and board[temp] == tokenToMove:
+                    final_move = move
+                    break
+
+    # 5. if the move is at an edge and is surrounded by oppositeTokens (..x.x... -> o), play there
+
+    if final_move is None:
+        for move in possible_moves:
+            if (0 <= move <= 7 or 56 <= move <= 63) and board[move + 1] == board[move - 1] == oppositeToken:
+                final_move = move
+                break
+
+            elif (move % 8 == 0 or move % 8 == 7) and board[move + 8] == board[move - 8] == oppositeToken:
+                final_move = move
+                break
+                
+
+    # 6. finalize good moves
+
+    if final_move is None:
+        already_seen = very_good_moves + bad_moves + very_bad_moves
+
+        for move in possible_moves:
+            if move not in already_seen:
+                good_moves.append(move)
 
 
+    # 6.5. finalize score for move if already selected
+    if final_move is not None:
+        best_move_value = 10
 
-def findBoardValue(board, tokenToMove, oppositeToken):
-    num_possible_moves = len(find_or_make_moves(board, tokenToMove, oppositeToken))
-    num_player_tok = board.count(tokenToMove)
-    num_opp_tok = board.count(oppositeToken)
-    total_tok = num_player_tok + num_opp_tok
-    curr_player_score = num_player_tok / total_tok
-    mobility = 0
-    position_score = 0
+    # 7. Run algorithm to find the value of a move
+    # move position weighting - very good: +2.8, good: +1, bad: -1, very bad: -2
 
-    score_val = (total_tok / 50) * ((11 ** curr_player_score) - 6)
+    # increase in score: raw_increase x 0.3
 
-    if num_possible_moves == 0:
-        mobility = -24
-    elif num_possible_moves == 1:
-        mobility = -18
-    else:
-        mobility = (num_possible_moves ** 1.5) - 8
+    # number of opponent places to move: 12 / raw_number + (og_number - raw_number) * 0.4
+    # takes into account both the raw number of opponent moves as well as decrease in opponent moves
 
-    for i in positions["corners"]:
-        if board[i] == tokenToMove:
-            position_score += 4
+    # total value of a move: increase in score + opponent move score + move position weighting
+
+    # I estimate that the best move values are going to be between 1-10, so the move position weighting
+    # between 'very good' and 'good' accounts for approximately 25% of the total value on average,
+    # with the function being 1.8 / (x + 2.8), where x is the value of a move before the move position weighting is added
     
-    for i in positions["csquares"]:
-        if board[i[0]] != tokenToMove and board[i[1]] == tokenToMove:
-            position_score -= 3
+    if final_move is None:
+        # print(very_good_moves, good_moves, bad_moves, very_bad_moves)
+        # print(possible_moves)
+        best_move = None
+        move_categories = [very_good_moves, good_moves, bad_moves, very_bad_moves]
+        current_score = board.count(tokenToMove) - board.count(oppositeToken)
+        current_opp_moves = len(find_or_make_moves(board, oppositeToken, tokenToMove))
 
-    for i in positions["csquares_worse"]:
-        if board[i[0]] != tokenToMove and board[i[1]] == tokenToMove:
-            position_score -= 4
-    
-    for i in positions["row2colb"]:
-        if board[i[1] + i[0]] != tokenToMove and board[i[0]] == tokenToMove:
-            position_score -= 1
+        for i in range(len(move_categories)):
+            move_category = move_categories[i]
 
-    for i in positions["edges"]:
-        if board[i] == tokenToMove:
-            position_score += 2
-    
-    for i in positions["inner_diagonals"]:
-        if board[i] == tokenToMove:
-            position_score += 1
+            if final_move is None:
+                for move in move_category:
+                    new_board = find_or_make_moves(board, tokenToMove, oppositeToken, move) # make the move
+                    new_opp_moves = len(find_or_make_moves(new_board, oppositeToken, tokenToMove)) # find num of opp moves
 
-    return score_val + mobility + position_score
+                    if new_opp_moves == 0: # if there arent any opp moves if we make this move
+                        final_move = move
+                        best_move_value = 12
+                        break
+
+                    new_score = new_board.count(tokenToMove) - new_board.count(oppositeToken)
+                    score_improvement = new_score - current_score
+                    opp_moves_improvement = current_opp_moves - new_opp_moves
+
+                    move_value = score_improvement * 0.4 + 12 / new_opp_moves + opp_moves_improvement * 0.4
+
+                    # account for move position weighting
+
+                    if i == 0: # very good moves
+                        move_value += 2.8
+                    elif i == 1: # good moves
+                        move_value += 1
+                    elif i == 2: # bad moves
+                        move_value -= 3
+                    elif i == 3: # very bad moves
+                        move_value -= 10
+
+                    # print(move, move_value, new_opp_moves, score_improvement)
+
+                    if best_move_value is None or move_value > best_move_value:
+                        best_move_value = move_value
+                        best_move = move
+        
+        if final_move is None:
+            final_move = best_move
+
+    # last resort in case something goes wrong
+    if final_move is None:
+        print('ERROR: LAST RESORT CONDITION MET')
+        final_move = possible_moves[0]
+
+    return final_move, best_move_value
 
 # finds the optimal move
 
@@ -164,19 +259,19 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=True):
 
     if board.count('.') < limitNM:
         if verbose:
-            print(alphabeta(board, tokenToMove, oppositeToken, -500, 500, 3)[-1]) # just in case
+            print(alphabeta(board, tokenToMove, oppositeToken, -65, 65, 3)[-1]) # just in case
         negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65)
         final_move = negamax_output[-1]
     else:
         # otherwise, run negamax up until a certain limit
         if verbose:
             # iterative deepening
-            for i in range(recur_limit):
-                negamax_output = alphabeta(board, tokenToMove, oppositeToken, -500, 500, i * 2 + 1)
+            for i in range(recur_limit // 2 + 1):
+                negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, i * 2 + 1)
                 print(negamax_output[-1])
 
         else:
-            negamax_output = alphabeta(board, tokenToMove, oppositeToken, -500, 500, recur_limit)
+            negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, recur_limit)
         final_move = negamax_output[-1]
         
     
@@ -557,8 +652,8 @@ def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None):
 
         else:
             # use my heuristic
-            ret = findBoardValue(board, tokenToMove, oppositeToken) - findBoardValue(board, oppositeToken, tokenToMove)
-            return [ret]
+            ret = findBestMoveHeuristic(board, tokenToMove, oppositeToken)
+            return [ret[1], ret[0]]
 
 
     if not possible_moves:
@@ -601,7 +696,7 @@ def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None):
             bestSoFar = [score] + result[1:] + [mv]
 
         lower = score + 1
-        
+
     return bestSoFar
 
 if __name__ == '__main__': 
