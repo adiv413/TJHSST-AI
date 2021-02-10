@@ -55,29 +55,29 @@ def main():
         if first_snapshot:
             first_snapshot = False
         else:
-            print(tokenToMove, 'moves to', move)
+            # print(tokenToMove, 'moves to', move)
 
             board = find_or_make_moves(board, tokenToMove, oppositeToken, move)
             tokenToMove, oppositeToken = oppositeToken, tokenToMove
 
         final_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
 
-        for i in range(8):
-            for j in range(8):
-                print(board[i * 8 + j], end=' ')
-            print()
+        # for i in range(8):
+        #     for j in range(8):
+        #         print(board[i * 8 + j], end=' ')
+        #     print()
 
         print(board)
 
-        print(str(board.count('x')) + '/' + str(board.count('o')))
+        # print(str(board.count('x')) + '/' + str(board.count('o')))
 
-        if '.' in board and final_moves:
-            print('Possible moves for', tokenToMove + ':', final_moves)
-        elif '.' in board and not final_moves:
-            tokenToMove, oppositeToken = oppositeToken, tokenToMove
-            print('Possible moves for', tokenToMove + ':', find_or_make_moves(board, tokenToMove, oppositeToken))
+        # if '.' in board and final_moves:
+        #     print('Possible moves for', tokenToMove + ':', final_moves)
+        # elif '.' in board and not final_moves:
+        #     tokenToMove, oppositeToken = oppositeToken, tokenToMove
+        #     print('Possible moves for', tokenToMove + ':', find_or_make_moves(board, tokenToMove, oppositeToken))
         
-        print()
+        # print()
 
 # returns the possible set of moves if moveIndex is not provided, otherwise returns the updated board    
 

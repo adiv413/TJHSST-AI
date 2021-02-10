@@ -3,6 +3,7 @@ import sys; args = sys.argv[1:]
 LIMIT_AB = 14
 num_games = 10
 recur_limit = 5
+time_limit = 3
 import time
 import random
 
@@ -560,7 +561,7 @@ def playTournament(gameCnt, limitNM):
 
 def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None, start_time=0):
     # alphabeta should run for a max of 2.5s to not waste too much time (iterative deepening should cover it)
-    if time.time() - start_time <= 2.5 or start_time == 0:
+    if (time.time() - start_time <= time_limit) or (start_time == 0):
         lower = raw_lower
         possible_moves = find_or_make_moves(board, tokenToMove, oppositeToken)
 

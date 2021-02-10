@@ -1,13 +1,19 @@
 # Aditya Vasantharao, pd. 4
-
 import sys; args = sys.argv[1:]
 import time
 import random
 
+# LIMIT_AB = 14
+# num_games = 10
+# recur_limit = 13
+# time_limit = 10
+
 LIMIT_AB = 14
+recur_limit = 13
 num_games = 10
-recur_limit = 5
-time_limit = 2.5
+time_limit = 0.5
+
+alphabeta_time_limit = time_limit # change to 0 if no alphabeta time limit
 
 corners = [0, 7, 56, 63]
 csquares = [(0, 1), (7, 6), (0, 8), (7, 15), (56, 48), (63, 55), (56, 57), (63, 62)]
@@ -91,7 +97,7 @@ def main():
 
         oppositeToken = 'o' if tokenToMove == 'x' else 'x'
 
-        findBestMove(board, tokenToMove, oppositeToken, LIMIT_AB)
+        print(findBestMove(board, tokenToMove, oppositeToken, LIMIT_AB, recur_limit))
 
 
 # Heuristic is calculated using token counts, mobility, and square valuation
@@ -158,9 +164,16 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbos
     moves = find_or_make_moves(board, tokenToMove, oppositeToken)
     ret = None
 
-    if verbose and moves:
+    if board in opening_book:
+        for i in opening_book[board]:
+            if i in moves:
+                return i
+
+    if best_move_obj and moves:
         # print first move immediately just in case 
         best_move_obj.value = moves[0]
+    elif verbose and moves:
+        print(moves[0])
 
     final_move = None
 
@@ -168,11 +181,14 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbos
 
     if board.count('.') < limitNM:
         if verbose:
-            ret = alphabeta(board, tokenToMove, oppositeToken, -500, 500, 3, start_time=time.time())
+            ret = alphabeta(board, tokenToMove, oppositeToken, -500, 500, 4, start_time=time.time())
             if ret:
-                best_move_obj.value = ret[-1]
+                if best_move_obj:
+                    best_move_obj.value = ret[-1]
+                elif verbose:
+                    print(ret[-1])
 
-        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65) # no time limit
+        negamax_output = alphabeta(board, tokenToMove, oppositeToken, -65, 65, start_time=alphabeta_time_limit)
 
         if not negamax_output:
             if not ret:
@@ -184,24 +200,17 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbos
     else:
         prev = None
         # otherwise, run negamax up until a certain limit
-        if verbose:
-            start = time.time()
-            # iterative deepening
-            for i in range(1, recur_limit):
-                negamax_output = alphabeta(board, tokenToMove, oppositeToken, -500, 500, i, start_time=start)
-                
-                if negamax_output:
-                    prev = negamax_output[-1]
+        start = time.time()
+        # iterative deepening
+        for i in range(1, recur_limit):
+            negamax_output = alphabeta(board, tokenToMove, oppositeToken, -500, 500, i, start_time=start)
+            
+            if negamax_output:
+                prev = negamax_output[-1]
+                if best_move_obj:
                     best_move_obj.value = negamax_output[-1]
-
-        else:
-            start = time.time()
-            # iterative deepening
-            for i in range(1, recur_limit):
-                negamax_output = alphabeta(board, tokenToMove, oppositeToken, -500, 500, i, start_time=start)
-                
-                if negamax_output:
-                    prev = negamax_output[-1]
+                elif verbose:
+                    print(negamax_output[-1])
         
         if negamax_output:
             final_move = negamax_output[-1]
@@ -210,7 +219,10 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbos
         else:
             final_move = moves[0]
     
-    best_move_obj.value = final_move
+    if best_move_obj:
+        best_move_obj.value = final_move
+    elif verbose:
+        print(final_move)
         
     return final_move
 
@@ -421,7 +433,7 @@ def playGame(myTkn, limitNM):
             move = None
 
             if tokenToMove == myTkn:
-                move = findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=False)
+                move = findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbose=False)
             else:
                 move = random.choice(possibleMoves)
 
@@ -439,7 +451,7 @@ def playGame(myTkn, limitNM):
                 move = None
 
                 if tokenToMove == myTkn:
-                    move = findBestMove(board, tokenToMove, oppositeToken, limitNM, verbose=False)
+                    move = findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbose=False)
                 else:
                     move = random.choice(possibleMoves)
 
@@ -510,10 +522,6 @@ def playTournament(gameCnt, limitNM):
     print('\n\n\n')
 
     return str(myScore / (myScore + oppScore) * 100)[:4] + '%', elapsed
-
-# ground truth (my tokens - opp tokens) scaling equation:
-# y = 0.000035(x+5)^3 - 0.0002x^2 + 0.28x
-# where x is the score and y is the value in my units so that it is on the same level with my heuristic
 
 def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None, start_time=0):
     # alphabeta should run for a max of 2.5s to not waste too much time (iterative deepening should cover it)
@@ -602,14 +610,118 @@ def alphabeta(board, tokenToMove, oppositeToken, raw_lower, upper, level=None, s
     
     return
 
+def rotate(board):
+    width = 8
+    height = 8
+    board_list = set()
+
+    temp_board = board
+
+    # four rotations
+
+    for i in range(4):
+        raw_clock_90 = [[i * width + j for i in range(height)][::-1] for j in range(width)] 
+        clock_90 = []
+
+        for i in raw_clock_90:
+            clock_90 += i
+
+        temp_board = ''.join([temp_board[clock_90[i]] for i in range(len(temp_board))])
+        board_list.add(temp_board)
+
+        height, width = width, height
+
+    # flip horizontally
+
+    myMap=[i//width*width+width-i%width-1 for i in range(len(board))]
+    temp_board = ''.join([board[myMap[i]] for i in range(len(board))])
+    board_list.add(temp_board)
+
+    # flip vertically
+
+    myMap=[(height-(i//width)-1)*width+i%width for i in range(len(board))]
+    temp_board = ''.join([board[myMap[i]] for i in range(len(board))])
+    board_list.add(temp_board)
+
+    # transpose: right rotation + flip horizontally
+
+    raw_clock_90 = [[i * width + j for i in range(height)][::-1] for j in range(width)] 
+    clock_90 = []
+
+    for i in raw_clock_90:
+        clock_90 += i
+
+    temp_board = ''.join([board[clock_90[i]] for i in range(len(board))])
+
+    height, width = width, height
+
+    myMap=[i//width*width+width-i%width-1 for i in range(len(board))]
+    temp_board = ''.join([temp_board[myMap[i]] for i in range(len(board))])
+    board_list.add(temp_board)
+
+    # revert height and width
+
+    height, width = width, height
+
+    # anti-transpose: flip vertically + left rotation
+
+    myMap=[(height-(i//width)-1)*width+i%width for i in range(len(board))]
+    temp_board = ''.join([board[myMap[i]] for i in range(len(board))])
+
+    # left rotation = 3x right rotation
+
+    for i in range(3):
+        raw_clock_90 = [[i * width + j for i in range(height)][::-1] for j in range(width)] 
+        clock_90 = []
+
+        for i in raw_clock_90:
+            clock_90 += i
+
+        temp_board = ''.join([temp_board[clock_90[i]] for i in range(len(temp_board))])
+        
+
+        height, width = width, height
+
+    board_list.add(temp_board)
+
+    return board_list
+
 class Strategy():
     logging = True
 
     def best_strategy(self, board, player, best_move, still_running):
-        LIMIT_AB = 14
-        recur_limit = 13
         oppositeToken = 'o' if player == 'x' else 'x'
         best_move.value = findBestMove(board, player, oppositeToken, LIMIT_AB, recur_limit, best_move_obj=best_move)
 
-# if __name__ == '__main__': 
-#     main()
+
+opening_book_raw = ['C4c3', 'C4c3D3c5B2', 'C4c3D3c5B3', 'C4c3D3c5B3f3', 'C4c3D3c5B3f4B5b4C6d6F5', 'C4c3D3c5B4', 'C4c3D3c5B4d2C2f4D6c6F5e6F7', 'C4c3D3c5B4d2D6', 'C4c3D3c5B4d2E2', 'C4c3D3c5B4e3', 'C4c3D3c5B5', 'C4c3D3c5B6', 'C4c3D3c5B6c6B5', 'C4c3D3c5B6e3', 'C4c3D3c5D6', 'C4c3D3c5D6e3', 'C4c3D3c5D6f4B4', 'C4c3D3c5D6f4B4b6B5c6B3', 'C4c3D3c5D6f4B4b6B5c6F5', 'C4c3D3c5D6f4B4c6B5b3B6e3C2a4A5a6D2', 'C4c3D3c5D6f4B4e3B3', 'C4c3D3c5D6f4F5', 'C4c3D3c5D6f4F5d2', 'C4c3D3c5D6f4F5d2B5', 'C4c3D3c5D6f4F5d2G4d7', 'C4c3D3c5D6f4F5e6C6d7', 'C4c3D3c5D6f4F5e6F6', 'C4c3D3c5F6', 'C4c3D3c5F6e2C6', 'C4c3D3c5F6e3C6f5F4g5', 'C4c3D3c5F6f5', 'C4c3E6c5', 'C4c3F5c5', 'C4e3', 'C4e3F4c5D6e6', 'C4e3F4c5D6f3C6', 'C4e3F4c5D6f3D3', 'C4e3F4c5D6f3D3c3', 'C4e3F4c5D6f3E2', 'C4e3F4c5D6f3E6c3D3e2', 'C4e3F4c5D6f3E6c3D3e2B5', 'C4e3F4c5D6f3E6c3D3e2B5f5', 'C4e3F4c5D6f3E6c3D3e2B5f5B3', 'C4e3F4c5D6f3E6c3D3e2B5f5B4f6C2e7D2c7', 'C4e3F4c5D6f3E6c3D3e2B6f5', 'C4e3F4c5D6f3E6c3D3e2B6f5B4f6G5d7', 'C4e3F4c5D6f3E6c3D3e2B6f5G5', 'C4e3F4c5D6f3E6c3D3e2B6f5G5f6', 'C4e3F4c5D6f3E6c3D3e2D2', 'C4e3F4c5D6f3E6c6', 'C4e3F4c5E6', 'C4e3F5b4', 'C4e3F5b4F3', 'C4e3F5b4F3f4E2e6G5f6D6c6', 'C4e3F5e6D3', 'C4e3F5e6F4', 'C4e3F5e6F4c5D6c6F7f3', 'C4e3F5e6F4c5D6c6F7g5G6', 'C4e3F6b4', 'C4e3F6e6F5', 'C4e3F6e6F5c5C3', 'C4e3F6e6F5c5C3b4', 'C4e3F6e6F5c5C3b4D6c6B5a6B6c7', 'C4e3F6e6F5c5C3c6', 'C4e3F6e6F5c5C3c6D3d2E2b3C1c2B4a3A5b5A6a4A2', 'C4e3F6e6F5c5C3c6D6', 'C4e3F6e6F5c5C3g5', 'C4e3F6e6F5c5D3', 'C4e3F6e6F5c5D6', 'C4e3F6e6F5c5F4g5G4f3C6d3D6', 'C4e3F6e6F5c5F4g5G4f3C6d3D6b3C3b4E2b6', 'C4e3F6e6F5c5F4g6F7', 'C4e3F6e6F5c5F4g6F7d3', 'C4e3F6e6F5c5F4g6F7g5', 'C4e3F6e6F5g6', 'C4e3F6e6F5g6E7c5']
+opening_book = {}
+
+for i in opening_book_raw:
+    curr_opening_moves_raw = [i[j:j+2] for j in range(0, len(i), 2)]
+    curr_opening_moves = [(int(m[1]) - 1) * 8 + ord(m[0].lower()) - ord('a') for m in curr_opening_moves_raw]
+    curr_board = '.' * 27 + 'ox......xo' + '.' * 27
+    temp_tokenToMove = 'x'
+    temp_oppositeToken = 'o'
+
+    for j in range(len(curr_opening_moves) - 1):
+        curr_board = find_or_make_moves(curr_board, temp_tokenToMove, temp_oppositeToken, curr_opening_moves[j])
+        temp_tokenToMove, temp_oppositeToken = temp_oppositeToken, temp_tokenToMove
+
+        if curr_board not in opening_book:
+            opening_book[curr_board] = set()
+
+        index_to_replace = curr_opening_moves[j + 1]
+        temp_curr_board = curr_board[:index_to_replace] + '*' + curr_board[index_to_replace + 1:]
+        x = rotate(temp_curr_board)
+
+        for k in x:
+            index_to_add = k.index('*')
+            board_to_add = k[:index_to_add] + '.' + k[index_to_add + 1:]
+            if board_to_add not in opening_book:
+                opening_book[board_to_add] = set()
+                
+            opening_book[board_to_add].add(index_to_add)
+            
+# if __name__ == '__main__':
+#     main() 
