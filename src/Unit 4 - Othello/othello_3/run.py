@@ -10,8 +10,7 @@ import subprocess
 # for i in moves:
 #     print((int(i[1]) - 1) * 8 + ord(i[0].lower()) - ord('a'))
 
-
-x = open("temp.txt", "r")
+x = [i for i in open("temp.txt", "r").read().splitlines() if i.split()[1] == 'x']
 for i in x:
     y = i.split()
-    print("'" + y[0] + "'", end=", ")
+    print(y[2], end=", ")    

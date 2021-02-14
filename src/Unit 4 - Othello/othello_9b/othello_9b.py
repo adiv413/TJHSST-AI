@@ -3,10 +3,15 @@ import sys; args = sys.argv[1:]
 import time
 import random
 
-LIMIT_AB = 13
+# LIMIT_AB = 14
+# num_games = 10
+# recur_limit = 13
+# time_limit = 10
+
+LIMIT_AB = 14
+recur_limit = 5
 num_games = 10
-recur_limit = 13
-time_limit = 10
+time_limit = 0.4
 
 use_opening_book = True
 
@@ -31,6 +36,8 @@ edge_right = [15 + 8 * j for j in range(6)]
 edges = edge_top + edge_bottom + edge_left + edge_right
 
 inner_diagonals = [18, 27, 36, 45, 21, 28, 35, 42]
+x_moves = [26, 19, 13, 21, 5, 29, 10, 17, 3, 1, 24, 25, 43, 0, 6, 39, 40, 8, 49, 42, 44, 53, 56, 15, 59, 60, 23, 57, 62, 63, 47, 46]              
+o_moves = [34, 21, 20, 37, 18, 10, 26, 33, 24, 8, 40, 49, 56, 30, 47, 55, 58, 50, 0, 3, 4, 14, 42, 5, 51, 15, 60, 39, 63, 62]
 
 positions = {"corners" : corners, "csquares" : csquares, "csquares_worse" : csquares_worse, \
     "row2colb" : row2colb, "edges": edges, "inner_diagonals" : inner_diagonals}
@@ -159,6 +166,18 @@ def findBoardValue(board, tokenToMove, oppositeToken):
 
 def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbose=True, best_move_obj=None):
     moves = find_or_make_moves(board, tokenToMove, oppositeToken)
+        
+    if tokenToMove == 'x':
+        move = x_moves[(60 - board.count('.')) // 2]
+        if move in moves:
+            print('sd')
+            return move
+
+    if tokenToMove == 'o':
+        move = o_moves[(60 - board.count('.')) // 2]
+        if move in moves:
+            return move
+
     ret = None
 
     if use_opening_book:
@@ -180,7 +199,7 @@ def findBestMove(board, tokenToMove, oppositeToken, limitNM, recur_limit, verbos
 
     if board.count('.') < limitNM:
         if verbose:
-            ret = alphabeta(board, tokenToMove, oppositeToken, -500, 500, 3, start_time=time.time())
+            ret = alphabeta(board, tokenToMove, oppositeToken, -500, 500, 4, start_time=time.time())
             if ret:
                 if best_move_obj:
                     best_move_obj.value = ret[-1]
@@ -687,10 +706,30 @@ def rotate(board):
 
 class Strategy():
     logging = True
+    
 
     def best_strategy(self, board, player, best_move, still_running):
         oppositeToken = 'o' if player == 'x' else 'x'
-        best_move.value = findBestMove(board, player, oppositeToken, LIMIT_AB, recur_limit, best_move_obj=best_move)
+        moves = find_or_make_moves(board, player, oppositeToken)
+        
+        if player == 'x':
+            move = x_moves[(60 - board.count('.')) // 2]
+            if move in moves:
+                best_move.value = move
+            else:
+                best_move.value = findBestMove(board, player, oppositeToken, LIMIT_AB, recur_limit, best_move_obj=best_move)
+
+        if player == 'o':
+            move = o_moves[(60 - board.count('.')) // 2]
+
+            if move in moves:
+                best_move.value = move
+            else:
+                best_move.value = findBestMove(board, player, oppositeToken, LIMIT_AB, recur_limit, best_move_obj=best_move)
+
+        print(board, best_move.value)
+
+        # best_move.value = findBestMove(board, player, oppositeToken, LIMIT_AB, recur_limit, best_move_obj=best_move)
 
 
 opening_book_raw = ['C4c3D3c5B3f4B5b4C6d6F5', 'C4c3D3c5B4d2C2f4D6c6F5e6F7', 'C4c3D3c5B6c6B5', 'C4c3D3c5D6f4B4c6B5b3B6e3C2a4A5a6D2', 'C4c3D3c5D6f4B4b6B5c6B3', 'C4c3D3c5D6f4B4e3B3', 'C4c3D3c5D6f4F5d2G4d7', 'C4c3D3c5D6f4F5d2B5', 'C4c3D3c5D6f4F5e6C6d7', 'C4c3D3c5D6f4F5e6F6', 'C4c3D3c5F6e3C6f5F4g5', 'C4c3D3c5F6e2C6', 'C4c3E6c5', 'C4c3F5c5', 'C4e3F4c5D6f3E6c3D3e2B5f5B4f6C2e7D2c7', 'C4e3F4c5D6f3D3c3', 'C4e3F4c5D6f3E6c3D3e2B6f5B4f6G5d7', 'C4e3F4c5D6f3E6c3D3e2B5f5B3', 'C4e3F4c5D6f3E6c3D3e2B6f5G5f6', 'C4e3F5b4F3f4E2e6G5f6D6c6', 'C4e3F5e6F4c5D6c6F7g5G6', 'C4e3F6e6F5c5C3c6D3d2E2b3C1c2B4a3A5b5A6a4A2', 'C4e3F6e6F5c5C3b4D6c6B5a6B6c7', 'C4e3F6e6F5c5C3c6D6', 'C4e3F6e6F5c5F4g5G4f3C6d3D6b3C3b4E2b6', 'C4e3F6e6F5c5F4g6F7d3', 'C4e3F6e6F5g6E7c5']
@@ -722,6 +761,6 @@ for i in opening_book_raw:
                 
             if index_to_add not in opening_book[board_to_add]:
                 opening_book[board_to_add].add(index_to_add)
-                
+
 if __name__ == '__main__':
     main() 

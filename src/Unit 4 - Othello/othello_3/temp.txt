@@ -1,79 +1,61 @@
-C4c3	Diagonal Opening
-C4c3D3c5B2	X-square Opening
-C4c3D3c5B3	Snake/Peasant
-C4c3D3c5B3f3	Lysons
-C4c3D3c5B3f4B5b4C6d6F5	Pyramid/Checkerboarding Peasant
-C4c3D3c5B4	Heath/Tobidashi
-C4c3D3c5B4d2C2f4D6c6F5e6F7	Mimura Variation II
-C4c3D3c5B4d2D6	Heath-Bat
-C4c3D3c5B4d2E2	Iwasaki Variation
-C4c3D3c5B4e3	Heath-Chimney
-C4c3D3c5B5	Raccoon Dog
-C4c3D3c5B6	Rocket
-C4c3D3c5B6c6B5	Hamilton
-C4c3D3c5B6e3	Lollipop
-C4c3D3c5D6	Cow
-C4c3D3c5D6e3	Chimney
-C4c3D3c5D6f4B4	Cow Bat/Bat/Cambridge
-C4c3D3c5D6f4B4b6B5c6B3	Bat (Piau Continuation 2)
-C4c3D3c5D6f4B4b6B5c6F5	Melnikov/Bat (Piau Continuation 1)
-C4c3D3c5D6f4B4c6B5b3B6e3C2a4A5a6D2	Bat (Kling Continuation)
-C4c3D3c5D6f4B4e3B3	Bat (Kling Alternative)
-C4c3D3c5D6f4F5	Rose-v-Toth
-C4c3D3c5D6f4F5d2	Tanida
-C4c3D3c5D6f4F5d2B5	Aircraft/Feldborg
-C4c3D3c5D6f4F5d2G4d7	Sailboat
-C4c3D3c5D6f4F5e6C6d7	Maruoka
-C4c3D3c5D6f4F5e6F6	Landau
-C4c3D3c5F6	Buffalo/Kenichi Variation
-C4c3D3c5F6e2C6	Maruoka Buffalo
-C4c3D3c5F6e3C6f5F4g5	Tanida Buffalo
-C4c3D3c5F6f5	Hokuriku Buffalo
-C4c3E6c5	Wing Variation
-C4c3F5c5	Semi-Wing Variation
-C4c5	Parallel Opening
-C4e3	Perpendicular Opening
-C4e3F4c5D6e6	Mimura
-C4e3F4c5D6f3C6	Shaman/Danish
-C4e3F4c5D6f3D3	Inoue
-C4e3F4c5D6f3D3c3	Iago
-C4e3F4c5D6f3E2	Bhagat
-C4e3F4c5D6f3E6c3D3e2	Rose
-C4e3F4c5D6f3E6c3D3e2B5	Flat
-C4e3F4c5D6f3E6c3D3e2B5f5	Rotating Flat
-C4e3F4c5D6f3E6c3D3e2B5f5B3	Murakami Variation
-C4e3F4c5D6f3E6c3D3e2B5f5B4f6C2e7D2c7	Rotating Flat (Kling Continuation)
-C4e3F4c5D6f3E6c3D3e2B6f5	Rose-Birth
-C4e3F4c5D6f3E6c3D3e2B6f5B4f6G5d7	Brightstein
-C4e3F4c5D6f3E6c3D3e2B6f5G5	Rose-Birdie/Rose-Tamenori
-C4e3F4c5D6f3E6c3D3e2B6f5G5f6	Rose-Tamenori-Kling
-C4e3F4c5D6f3E6c3D3e2D2	Greenberg/Dawg
-C4e3F4c5D6f3E6c6	Ralle
-C4e3F4c5E6	Horse
-C4e3F5b4	Ganglion/No-Cat
-C4e3F5b4F3	Swallow
-C4e3F5b4F3f4E2e6G5f6D6c6	No-Cat (Continuation)
-C4e3F5e6D3	Italian
-C4e3F5e6F4	Cat
-C4e3F5e6F4c5D6c6F7f3	Sakaguchi
-C4e3F5e6F4c5D6c6F7g5G6	Berner
-C4e3F6b4	Bent Ganglion
-C4e3F6e6F5	Tiger
-C4e3F6e6F5c5C3	Stephenson
-C4e3F6e6F5c5C3b4	No-Kung
-C4e3F6e6F5c5C3b4D6c6B5a6B6c7	No-Kung (Continuation)
-C4e3F6e6F5c5C3c6	Comp'Oth
-C4e3F6e6F5c5C3c6D3d2E2b3C1c2B4a3A5b5A6a4A2	F.A.T. Draw
-C4e3F6e6F5c5C3c6D6	Lighning Bolt
-C4e3F6e6F5c5C3g5	Kung
-C4e3F6e6F5c5D3	Leader's Tiger
-C4e3F6e6F5c5D6	Brightwell
-C4e3F6e6F5c5F4g5G4f3C6d3D6	Ishii
-C4e3F6e6F5c5F4g5G4f3C6d3D6b3C3b4E2b6	Mainline Tiger
-C4e3F6e6F5c5F4g6F7	Rose-Bill
-C4e3F6e6F5c5F4g6F7d3	Tamenori
-C4e3F6e6F5c5F4g6F7g5	Central Rose-Bill/Dead Draw
-C4e3F6e6F5g6	Aubrey/Tanaka
-C4e3F6e6F5g6E7c5	Aubrey (Feldborg Continuation)
-
-['C4c3', 'C4c3D3c5B2', 'C4c3D3c5B3', 'C4c3D3c5B3f3', 'C4c3D3c5B3f4B5b4C6d6F5', 'C4c3D3c5B4', 'C4c3D3c5B4d2C2f4D6c6F5e6F7', 'C4c3D3c5B4d2D6', 'C4c3D3c5B4d2E2', 'C4c3D3c5B4e3', 'C4c3D3c5B5', 'C4c3D3c5B6', 'C4c3D3c5B6c6B5', 'C4c3D3c5B6e3', 'C4c3D3c5D6', 'C4c3D3c5D6e3', 'C4c3D3c5D6f4B4', 'C4c3D3c5D6f4B4b6B5c6B3', 'C4c3D3c5D6f4B4b6B5c6F5', 'C4c3D3c5D6f4B4c6B5b3B6e3C2a4A5a6D2', 'C4c3D3c5D6f4B4e3B3', 'C4c3D3c5D6f4F5', 'C4c3D3c5D6f4F5d2', 'C4c3D3c5D6f4F5d2B5', 'C4c3D3c5D6f4F5d2G4d7', 'C4c3D3c5D6f4F5e6C6d7', 'C4c3D3c5D6f4F5e6F6', 'C4c3D3c5F6', 'C4c3D3c5F6e2C6', 'C4c3D3c5F6e3C6f5F4g5', 'C4c3D3c5F6f5', 'C4c3E6c5', 'C4c3F5c5', 'C4c5', 'C4e3', 'C4e3F4c5D6e6', 'C4e3F4c5D6f3C6', 'C4e3F4c5D6f3D3', 'C4e3F4c5D6f3D3c3', 'C4e3F4c5D6f3E2', 'C4e3F4c5D6f3E6c3D3e2', 'C4e3F4c5D6f3E6c3D3e2B5', 'C4e3F4c5D6f3E6c3D3e2B5f5', 'C4e3F4c5D6f3E6c3D3e2B5f5B3', 'C4e3F4c5D6f3E6c3D3e2B5f5B4f6C2e7D2c7', 'C4e3F4c5D6f3E6c3D3e2B6f5', 'C4e3F4c5D6f3E6c3D3e2B6f5B4f6G5d7', 'C4e3F4c5D6f3E6c3D3e2B6f5G5', 'C4e3F4c5D6f3E6c3D3e2B6f5G5f6', 'C4e3F4c5D6f3E6c3D3e2D2', 'C4e3F4c5D6f3E6c6', 'C4e3F4c5E6', 'C4e3F5b4', 'C4e3F5b4F3', 'C4e3F5b4F3f4E2e6G5f6D6c6', 'C4e3F5e6D3', 'C4e3F5e6F4', 'C4e3F5e6F4c5D6c6F7f3', 'C4e3F5e6F4c5D6c6F7g5G6', 'C4e3F6b4', 'C4e3F6e6F5', 'C4e3F6e6F5c5C3', 'C4e3F6e6F5c5C3b4', 'C4e3F6e6F5c5C3b4D6c6B5a6B6c7', 'C4e3F6e6F5c5C3c6', 'C4e3F6e6F5c5C3c6D3d2E2b3C1c2B4a3A5b5A6a4A2', 'C4e3F6e6F5c5C3c6D6', 'C4e3F6e6F5c5C3g5', 'C4e3F6e6F5c5D3', 'C4e3F6e6F5c5D6', 'C4e3F6e6F5c5F4g5G4f3C6d3D6', 'C4e3F6e6F5c5F4g5G4f3C6d3D6b3C3b4E2b6', 'C4e3F6e6F5c5F4g6F7', 'C4e3F6e6F5c5F4g6F7d3', 'C4e3F6e6F5c5F4g6F7g5', 'C4e3F6e6F5g6', 'C4e3F6e6F5g6E7c5']
+T19-Gunn,pcgabor sd sd fsdf 
+..................*.*.....xxx.....*xo........................... x 26 4 1
+..........*.......o*......xox......xo*......*................... o 18 3 3
+..................ox*.....xxx.....*xo........................... x 19 5 2
+.........*****....ooo*....xxo*.....xo*.......*.................. o 20 3 5
+............*x....oox*...*xxo....**xo.....**.................... x 13 5 4
+.....*...***ox....ooo*....xxo*.....xo*.......*.................. o 12 4 6
+......*.....ox*...ooox*...xxx.*..**xo*.....*.................... x 21 6 5
+....**...***ox*...ooooo...xxx*.*...xo*......**.................. o 22 5 7
+...**x*.....xx....oxooo...xxx.....*xo.....*..................... x 5 8 5
+.....x......xx*..*oxooo*.*oox***.*ooo....****................... o 34 5 9
+....*x*....*xx*...oxoxo...ooxx*...ooo.*......................... x 29 7 8
+..*..x....*oxx.*.*oooxo*.*ooxx.*.*ooo....****................... o 11 6 10
+..***x*...xxxx*...oxoxo...ooxx*...ooo.*......................... x 10 9 8
+.....x....xxxx...*oxoxo*.*ooooo*.*ooo***.****................... o 30 7 11
+.****x*.**xxxx*.*xxxoxo...ooooo...ooo........................... x 17 9 10
+.*o*.x...*ooxx...xoxoxo*..ooooo*.*ooo*.*.****................... o 2 6 14
+.*ox*x*.*.xxxx*.*xoxoxo...ooooo...ooo........................... x 3 9 12
+.*ooox....xooo*..xoxoxo*..ooooo..*ooo*.*..***................... o 4 5 17
+.xxxxx..**xooo*.*xoxoxo...ooooo...ooo........................... x 1 9 14
+.xxxxx....xooo*.oooxoxo***ooooo*.*ooo***..***................... o 16 8 16
+.xxxxx..**xooo*.oxoxoxo.x.ooooo.*.ooo........................... x 24 10 15
+.xxxxx....xooo*.oxoxoxo*o*ooooo*o*ooo***..***................... o 32 9 17
+.xxxxx..**xxoo*.oxxxoxo.oxooooo.o.ooo........................... x 25 12 15
+.xxxxx...ooooo..oxoxoxo*oxooooo*o*ooo***..***................... o 9 9 19
+.xxxxx..*ooooo*.oxoxoxo.oxoxooo.o*xxo....**x*.....***........... x 43 13 16
+*xxxxx*..ooooo.*oooxoxo*oooxooo*ooooo******x**.................. o 33 9 21
+xxxxxx..*xoooo*.ooxxoxo.oooxooo.ooooo......x......***........... x 0 12 19
+xxxxxx*..xoooo*.ooxxoxo*oooxooo*ooooo******o**....o*............ o 50 11 21
+xxxxxxx.*xooox*.ooxxxxo.oooxooo.ooooo......o......o............. x 6 14 19
+xxxxxxx..xooooo*ooxxxoo*oooxooo*ooooo******o**....o*............ o 14 12 22
+xxxxxxx.*xooxoo.ooxxxxo.oooxoox*ooooo.*x...o......o............. x 39 16 19
+xxxxxxx*.xooxoo*ooxxxxo*oooxooo*ooooo*ox***o****..o*............ o 38 15 21
+xxxxxxx.*xooxoo.ooxxxxo.ooxxooo.oxooo.oxx**o....*.o............. x 40 18 19
+xxxxxxx**xooxoo*ooxxxxo*ooxxooo*ooooo*oxxo*o******o*............ o 41 17 21
+xxxxxxx*xxooxoo*xxxxxxo*xoxxooo*xoooo*oxxo*o******o**......*.... x 8 22 17
+xxxxxxx.xxooxoo.xxxxxxo.xxxxooo.xxooo.oxxx.o....*xo............. x 49 26 14
+xxxxxxx*xxooxoo*xxxxxxo*xxxxooo*xxooo*oxxo*o****ooo**...****.... o 48 24 17
+xxxxxxx.xxooxoo.xxxxxxo.xxxxxoo.xxxxo*oxxxxo....ooo............. x 42 29 13
+xxxxxxx*xxooxoo*xxxoxxo*xxxxooo*xxxxoooxxxxo****ooo**...****.... o 37 27 16
+xxxxxxx.xxooxoo.xxxoxxo.xxxxxoo.xxxxxooxxxxxx...ooo*............ x 44 31 13
+xxxxxxx*xxooxoo*xxxoxxo*xxxoxoo*xxxoxooxxxxoo***oooo**..*****... o 51 27 18
+xxxxxxx.xxooxoo.xxxoxxo.xxxoxoo.xxxxxooxxxxox*..oooo.x.......... x 53 30 16
+xxxxxxx*xxooxoo*xxxoxxo*xxxoxoo*xxxxoooxxxxooo**oooo*x*.*****... o 45 28 19
+xxxxxxx.xxooxoo.xxxoxxo.xxxoxoo.xxxxoooxxxxooo..xxoo.x..x....**. x 56 31 17
+xxxxxxx*xxooxoo*xxxoxxo*xxxoxoo*xxxxoooxxxxooo**xxoo*o*.x.***o*. o 61 30 19
+xxxxxxx.xxooxxxxxxxoxxo*xxxoxoo*xxxxoooxxxxooo**xxoo*o*.x****o*. x 15 33 17
+xxxxxxx.xxooxxxxxxxoxxo.xxxoxoo.xxxxoooxxxxxoo..xxxx.o..x**x.o.. x 59 37 14
+xxxxxxx.xxooxxxxxxooxxo*xxooxoo*xxoxoooxxxoxoo**xxoo*o*.x*ox*o*. o 58 31 21
+xxxxxxx.xxooxxxxxxooxxo.xxooxoo.xxoxoooxxxxxoo..xxox*o..x.oxxo.. x 60 34 19
+xxxxxxx.xxooxxxxxxooxxo*xxooxoo*xxoxoooxxxxooo**xxoooo*.x*oxxo*. o 52 32 22
+xxxxxxx.xxooxxxxxxooxxxxxxooxoo*xxoxoooxxxxooo**xxoooo*.x*oxxo*. x 23 34 21
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo*xxoxxooxxxxxoo**xxxooo*.xxxxxo*. x 57 40 16
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo.xxoxxooxxxxxxo..xxxoox*.xxxxxxx. x 62 44 13
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo*xxoxxooxxxxxxo**xxxoooo*xxxxxxx* o 54 43 15
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo.xxoxxooxxxxxxx..xxxooox*xxxxxxxx x 63 46 13
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo*xxoxxooxxxxxxx**xxxoooooxxxxxxxx o 55 45 15
+xxxxxxx.xxooxxxxxxooxxxxxxooxxo*xxoxxoxxxxxxxx*xxxxoooxxxxxxxxxx x 47 49 12
+xxxxxxx.xxooxxxxxxooxxxxxxooxxooxxoxxooxxxxxxo*xxxxoooxxxxxxxxxx o 31 47 15
+xxxxxxx*xxooxxxxxxooxxxxxxooxxxoxxoxxxxxxxxxxxxxxxxooxxxxxxxxxxx x 46 53 10
+xxxxxxxoxxooxxxoxxooxxxoxxooxxxoxxoxxxxxxxxxxxxxxxxooxxxxxxxxxxx o 7 51 13
