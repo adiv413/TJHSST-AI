@@ -33,6 +33,10 @@ def main():
         h_offset = int(loc[1])
         
         word = re.split('\d+', seed)[-1]
+        
+        if not word or len(re.split('\d+', seed)) == 2:
+            word = '#'
+
         start_pos = v_offset * width + h_offset
         
         if orientation.lower() == 'h':
@@ -47,7 +51,7 @@ def main():
 
     if height * width == num_block_squares:
         final_crossword = (height * width) * '#'
-
+    print(check_for_isolated_regions(final_crossword, height, width))
     # print(height, width, num_block_squares)
     # print(seed_strings)
     # print(final_crossword)
@@ -56,6 +60,32 @@ def main():
         for j in range(width):
             print(final_crossword[i * width + j], end=' ')
         print()
+
+    
+# returns True if there are no isolated regions (everything is connected), and False if there are isolated regions
+def check_for_isolated_regions(crossword, height, width):
+    start = crossword.index('-')
+    filled_crossword = flood_fill(crossword, start // width, start % width, width, height)
+
+    if '-' in filled_crossword:
+        return False
+    else:
+        return True
+
+def flood_fill(crossword, i, j, width, height):
+    # i is the vertical displacement and j is horizontal
+    pos = i * width + j
+    if i >= height or j >= width or i < 0 or j < 0 or crossword[pos] != '-':
+        return crossword
+
+    new_crossword = crossword[:pos] + 'x' + crossword[pos + 1:]
+
+    new_crossword = flood_fill(new_crossword, i + 1, j, width, height)
+    new_crossword = flood_fill(new_crossword, i, j + 1, width, height)
+    new_crossword = flood_fill(new_crossword, i - 1, j, width, height)
+    new_crossword = flood_fill(new_crossword, i, j - 1, width, height)
+    
+    return new_crossword
 
 if __name__ == '__main__':
     main()
