@@ -48,50 +48,46 @@ def main():
             for i in range(len(word)):
                 crossword = crossword[:curr_pos] + word[i] + crossword[curr_pos + 1:]
                 curr_pos += width
+
+    if num_block_squares == height * width:
+        print(num_block_squares * '#')
+    else:
+        final_crossword = rotate_180_entire(crossword, height, width)
+
+        if not is_valid(final_crossword, height, width):
+            final_crossword = fix_invalid_board(final_crossword, height, width)
+
+        # for i in range(height):
+        #     for j in range(width):
+        #         print(final_crossword[i * width + j], end=' ')
+        #     print()
+        # print()
+
+        final_crossword = add_blocking_squares(final_crossword, height, width, num_block_squares)
+        
+        for i in range(height):
+            for j in range(width):
+                print(final_crossword[i * width + j], end=' ')
+            print()
+        print()
+
+        # print('---------------------------------')
+        # print(is_valid(final_crossword, height, width))
+        # print('---------------------------------')
+        # print('\n\n\n\n\n\n\n')
+
         
 
-    if height * width == num_block_squares:
-        crossword = (height * width) * '#'
-    
-    # print(height, width, num_block_squares)
-    # print(seed_strings)
-    # print(crossword)
-    # print()
-    for i in range(height):
-        for j in range(width):
-            print(crossword[i * width + j], end=' ')
-        print()
-    print()
+        # print(check_small_areas(final_crossword, height, width))
 
-    final_crossword = rotate_180_entire(crossword, height, width)
-
-    for i in range(height):
-        for j in range(width):
-            print(final_crossword[i * width + j], end=' ')
-        print()
-    print()
-
-    print(check_small_areas(final_crossword, height, width))
-
-    print(is_valid(final_crossword, height, width))
-
-    final_crossword = fix_invalid_board(final_crossword, height, width)
-
-    for i in range(height):
-        for j in range(width):
-            print(final_crossword[i * width + j], end=' ')
-        print()
-    print()
-
-    print(check_small_areas(final_crossword, height, width))
-
-    print(is_valid(final_crossword, height, width))
+        # print(is_valid(final_crossword, height, width))
 
 def fix_invalid_board(crossword, height, width):
     new_crossword = crossword
-    
 
     while True:
+        new_crossword = check_for_isolated_regions(new_crossword, height, width, fill_isolated_regions=True)
+        
         ret = check_small_areas(new_crossword, height, width, return_info_to_fix=True)
         if ret[0]:
             break
@@ -141,13 +137,98 @@ def fix_invalid_board(crossword, height, width):
     return new_crossword
     
 # returns True if there are no isolated regions (everything is connected and valid from that angle), and False if there are isolated regions
-def check_for_isolated_regions(crossword, height, width):
-    start = crossword.index('-')
+def check_for_isolated_regions(crossword, height, width, fill_isolated_regions=False):
+    start = crossword.find('-')
+
+    if start == -1:
+        for i in range(len(crossword)):
+            if crossword[i] != '#':
+                start = i
+                break
+        else:
+            # the board is only blocking squares
+            return True
+
     filled_crossword = flood_fill(crossword, start // width, start % width, height, width)
+
+    if fill_isolated_regions and '-' in filled_crossword:
+
+        while True:
+            # print('sssssssssssssssssssssssss\n\n\n\n\n')
+            # print()
+            # for i in range(height):
+            #     for j in range(width):
+            #         print(filled_crossword[i * width + j], end=' ')
+            #     print()
+            # print()
+            # print('sssssssssssssssssssssssss\n\n\n\n\n')
+
+
+            master_filled_crossword = filled_crossword
+            last_filled_crossword = filled_crossword
+            regions_to_fill = set()
+            regions_to_fill.add(last_filled_crossword)
+            reset_pos_list = []
+
+            while '-' in master_filled_crossword:
+                reset_pos_list += [i for i in range(len(last_filled_crossword)) if last_filled_crossword[i] == '*'] # reset these positions to - before adding last_filled_crossword to regions_to_fill
+
+                start = master_filled_crossword.find('-')
+                master_filled_crossword = flood_fill(master_filled_crossword, start // width, start % width, height, width)
+
+                last_filled_crossword = master_filled_crossword
+
+                for i in reset_pos_list:
+                    last_filled_crossword = last_filled_crossword[:i] + '-' + last_filled_crossword[i + 1:]
+                
+                regions_to_fill.add(last_filled_crossword)
+
+            regions_to_fill = {i for i in regions_to_fill if '*' in i}
+
+            # print('---------------------------------REGIONS------------------------------')
+
+            # for xword in regions_to_fill:
+            #     print()
+            #     for i in range(height):
+            #         for j in range(width):
+            #             print(xword[i * width + j], end=' ')
+            #         print()
+            #     print()
+
+            # print('---------------------------------END REGIONS------------------------------')
+
+            num_squares_to_change_list = {xword.count('*') : xword for xword in regions_to_fill}
+            smallest_change = min(num_squares_to_change_list)
+
+            filled_crossword = num_squares_to_change_list[smallest_change].replace('*', '#')
+
+            # print()
+            # for i in range(height):
+            #     for j in range(width):
+            #         print(filled_crossword[i * width + j], end=' ')
+            #     print()
+            # print()
+
+            if check_for_isolated_regions(filled_crossword, height, width):
+                break
+        
+        ret_crossword = crossword
+        block_squares_list = [i for i in range(len(filled_crossword)) if filled_crossword[i] == '#']
+
+        for i in block_squares_list:
+            ret_crossword = ret_crossword[:i] + '#' + ret_crossword[i + 1:]
+
+        return ret_crossword
+
+
+
+        # check for the first _ and have start for flood fill be there
 
     if '-' in filled_crossword:
         return False
     else:
+        if fill_isolated_regions:
+            return crossword
         return True
 
 def flood_fill(crossword, i, j, height, width):
@@ -253,6 +334,42 @@ def rotate_180_pos(pos, height, width):
 
 def is_valid(crossword, height, width):
     return check_small_areas(crossword, height, width) and check_for_isolated_regions(crossword, height, width)
+
+def add_blocking_squares(crossword, height, width, target_num_squares):
+    if not is_valid(crossword, height, width):
+        return ''
+
+    if crossword.count('#') == target_num_squares:
+        return crossword
+    elif crossword.count('#') > target_num_squares:
+        return ''
+
+    set_of_choices = [i for i in range(len(crossword)) if crossword[i] == '-']
+    for choice in set_of_choices:
+        new_xword = crossword[:choice] + '#' + crossword[choice + 1:]
+        new_pos = rotate_180_pos(choice, height, width)
+
+        if crossword[new_pos] != '-':
+            continue
+
+        new_xword = new_xword[:new_pos] + '#' + new_xword[new_pos + 1:]
+        ret = add_blocking_squares(new_xword, height, width, target_num_squares)
+        if ret:
+            return ret
+
+    return ''
+
+    '''
+    find a setOfChoices that is collectively exhaustive 
+        find a list of the indices
+        order them by center -> outside (do this or no??)
+        order them by are they adjacent to another blocking square
+    for each possibleChoice in the setOfChoices:
+        subPzl = pzl with possibleChoiceapplied
+        bF = bruteForce(subPzl)
+        if bF: return bF
+    return ""
+    '''
 
 if __name__ == '__main__':
     main()
