@@ -335,9 +335,14 @@ def rotate_180_pos(pos, height, width):
 def is_valid(crossword, height, width):
     return check_small_areas(crossword, height, width) and check_for_isolated_regions(crossword, height, width)
 
-def add_blocking_squares(crossword, height, width, target_num_squares):
+def add_blocking_squares(raw_crossword, height, width, target_num_squares):
+    crossword = raw_crossword
+
     if not is_valid(crossword, height, width):
-        return ''
+        if target_num_squares - crossword.count('#') < 30:
+            return ''
+        else:
+            crossword = fix_invalid_board(crossword, height, width)
 
     if crossword.count('#') == target_num_squares:
         return crossword
