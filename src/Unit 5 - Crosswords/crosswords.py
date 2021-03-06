@@ -302,18 +302,75 @@ def add_blocking_squares(raw_crossword, height, width, target_num_squares):
     elif crossword.count('#') > target_num_squares:
         return ''
 
-    set_of_choices = [i for i in range(len(crossword)) if crossword[i] == '-']
-    for choice in set_of_choices:
-        new_xword = crossword[:choice] + '#' + crossword[choice + 1:]
-        new_pos = rotate_180_pos(choice, height, width)
+    set_of_choices = {i : set() for i in range(100)}
 
-        if crossword[new_pos] != '-':
-            continue
+    for i in range(len(crossword)):
+        if crossword[i] == '-':
+            total_spaces = 0
+            temp = i - 1
+            temp_spaces = 0
 
-        new_xword = new_xword[:new_pos] + '#' + new_xword[new_pos + 1:]
-        ret = add_blocking_squares(new_xword, height, width, target_num_squares)
-        if ret:
-            return ret
+            # left
+            while temp % width < width - 1 and crossword[temp] != '#':
+                temp -= 1
+                temp_spaces += 1
+
+            if temp_spaces < 3: # protection against adjacent blocking squares
+                total_spaces += 15
+
+            total_spaces += temp_spaces
+            temp_spaces = 0
+
+            # right
+            temp = i + 1
+            while temp % width > 0 and crossword[temp] != '#':
+                temp += 1
+                temp_spaces += 1
+
+            if temp_spaces < 3: # protection against adjacent blocking squares
+                total_spaces += 15
+
+            total_spaces += temp_spaces
+            temp_spaces = 0
+
+            # up
+            temp = i - width
+            while temp // width > -1 and crossword[temp] != '#':
+                temp -= width
+                temp_spaces += 1
+
+            if temp_spaces < 3: # protection against adjacent blocking squares
+                total_spaces += 15
+
+            total_spaces += temp_spaces
+            temp_spaces = 0
+
+            # down
+            temp = i + width
+            while temp // width < height and crossword[temp] != '#':
+                temp += width
+                temp_spaces += 1
+
+            if temp_spaces < 3: # protection against adjacent blocking squares
+                total_spaces += 15
+
+            total_spaces += temp_spaces
+            temp_spaces = 0
+
+            set_of_choices[total_spaces].add(i)
+            
+    for choice_set in set_of_choices:
+        for choice in set_of_choices[choice_set]:
+            new_xword = crossword[:choice] + '#' + crossword[choice + 1:]
+            new_pos = rotate_180_pos(choice, height, width)
+
+            if crossword[new_pos] != '-':
+                continue
+
+            new_xword = new_xword[:new_pos] + '#' + new_xword[new_pos + 1:]
+            ret = add_blocking_squares(new_xword, height, width, target_num_squares)
+            if ret:
+                return ret
 
     return ''
 
