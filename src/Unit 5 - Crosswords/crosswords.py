@@ -516,25 +516,21 @@ def is_solved(crossword):
 # maybe try determining when adding a word if it creates an impossibility
 
 def fill_in_words(raw_crossword, height, width, words_in_xword, old_finished_horiz_words, old_finished_vert_words, opp_word_set):
-    if is_invalid(opp_word_set): #and raw_crossword.count('-') > height * width * .15:
+    if is_invalid(opp_word_set):
         return ''
-
-    if height * width >= 30 and raw_crossword.count('-') < height * width * .12 or raw_crossword.count('-') < 3:
-        return raw_crossword.replace('-', 'a')
 
     crossword = raw_crossword
     finished_horiz_words = {i for i in old_finished_horiz_words}
     finished_vert_words = {i for i in old_finished_vert_words}
-    # print(words_in_xword)
 
     if is_solved(crossword):
         return crossword
 
-    # create and order set of choices
+    # create set of choices
 
-    set_of_choices = {i : set() for i in range(1, max(height, width) + 1)} # { num_spaces : set("start_pos + end_pos + orientation (H/V)") }
-
-    # build set of choices
+    potential_choices = set() # { (H/V, beginning_index) }
+    best_choice = (None, None, None, None)
+    best_choice_potential_words = None
 
     for i in range(len(horizontal_word_pos_list)):
         if i not in finished_horiz_words:
@@ -544,14 +540,9 @@ def fill_in_words(raw_crossword, height, width, words_in_xword, old_finished_hor
             if '-' not in actual_word:
                 finished_horiz_words.add(i)
 
-            # elif actual_word.count('-') == 1 and crossword.count('-') < height * width * .15:
-            #     idx = actual_word.find('-')
-            #     pos = pos_list[idx]
-            #     crossword = crossword[:pos] + 'a' + crossword[pos + 1:]
-
             else:
-                num_spaces = actual_word.count('-')
-                set_of_choices[num_spaces].add(str(pos_list[0]) + ' ' + str(pos_list[-1] + 1) + ' ' + 'H')
+                to_add = ('H', pos_list[0], actual_word)
+                potential_choices.add(to_add)
 
     for i in range(len(vertical_word_pos_list)):
         if i not in finished_vert_words:
@@ -561,115 +552,100 @@ def fill_in_words(raw_crossword, height, width, words_in_xword, old_finished_hor
             if '-' not in actual_word:
                 finished_vert_words.add(i)
 
-            # elif actual_word.count('-') == 1 and crossword.count('-') < height * width * .15:
-            #     idx = actual_word.find('-')
-            #     pos = pos_list[idx]
-            #     crossword = crossword[:pos] + 'a' + crossword[pos + 1:]
-
             else:
-                num_spaces = actual_word.count('-')
-                set_of_choices[num_spaces].add(str(pos_list[0]) + ' ' + str(pos_list[-1] + 1) + ' ' + 'V')
+                to_add = ('V', pos_list[0], actual_word)
+                potential_choices.add(to_add)
+
+    # find best choice by going through all the choices and finding the one with the fewest possible words that can go there
+
+    for orientation, beginning_pos, actual_word in potential_choices:
+        potential_words_for_choice = None
+
+        for letter_pos in range(len(actual_word)):
+            letter = actual_word[letter_pos]
+
+            if letter != '-':
+                if potential_words_for_choice is None:
+                    try:
+                        potential_words_for_choice = word_lookup_table[letter][letter_pos][len(actual_word)]    
+                    except:
+                        return ''
+
+                else:
+                    try:
+                        potential_words_for_choice = set.intersection(potential_words_for_choice, word_lookup_table[letter][letter_pos][len(actual_word)])
+                    except:
+                        return ''
+
+        if potential_words_for_choice is None:
+            potential_words_for_choice = all_words_grouped_by_len[len(actual_word)]
+
+        num_potential_words = len(potential_words_for_choice)
+
+        if num_potential_words == 0:
+            return ''
+        
+        if best_choice[0] is None or num_potential_words < best_choice[0]:
+            best_choice = (num_potential_words, orientation, beginning_pos, actual_word)
+            best_choice_potential_words = potential_words_for_choice
+
 
     # apply choices, recur using that choices
 
-    for num_spaces in set_of_choices:
-        if set_of_choices[num_spaces]:
-            for chunk in set_of_choices[num_spaces]:
-                choice = chunk.split(' ')
-                start = int(choice[0])
-                end = int(choice[1]) # note: end is always real_end + 1, to make range() and list comp easier
-                start2 = 0
-                end2 = 0
-                orientation = choice[2]
-                word = ''
+    for potential_word in best_choice_potential_words:
+        if potential_word not in words_in_xword:
+            orientation = best_choice[1]
+            beginning_pos = best_choice[2]
+            actual_word = best_choice[3]
+            end_pos = None
 
-                # parse the chunk
+            if orientation == 'H':
+                end_pos = pos_word_lookup_table[beginning_pos][0][-1]
+            else:
+                end_pos = pos_word_lookup_table[beginning_pos][1][-1]
 
-                if orientation == 'H':
-                    word = crossword[start:end]
-
-                else:
-                    word = ''.join([crossword[i] for i in range(start, end, width)])
-
-                # find the set of words that can go in this location
-
-                potential_words = None
-
-                for letter_pos in range(len(word)):
-                    letter = word[letter_pos]
-                    if letter != '-':
-                        if potential_words is None:
-                            # print(letter, letter_pos, len(word))
-                            try:
-                                potential_words = word_lookup_table[letter][letter_pos][len(word)]    
-                            except:
-                                return ''
-                        else:
-                            try:
-                                potential_words = set.intersection(potential_words, word_lookup_table[letter][letter_pos][len(word)])
-                            except:
-                                return ''
-
-                # if the current word is empty--no letters in there to try to whittle it down, use any word with a correct length
-
-                if potential_words is None:
-                    # print(chunk)
-                    potential_words = all_words_grouped_by_len[len(word)]
-
-                for word_to_place in potential_words:
-                    if word_to_place not in words_in_xword:
-                        # print(word_to_place)
-
-                        # apply choice and recur
+                
                         
-                        new_words_in_xword = {w for w in words_in_xword}
-                        new_words_in_xword.add(word_to_place)
-                        new_crossword = None
-                        opp_word_set = set()
+            new_words_in_xword = {w for w in words_in_xword}
+            new_words_in_xword.add(potential_word)
+            new_crossword = None
+            opp_word_set = set()
 
-                        # horizontal 
+            # horizontal 
 
-                        if orientation == 'H':
-                            new_crossword = crossword[:start] + word_to_place + crossword[end:]
+            if orientation == 'H':
+                new_crossword = crossword[:beginning_pos] + potential_word + crossword[end_pos + 1:]
 
 
-                            for idx in range(start, end):
-                                pos_list = pos_word_lookup_table[idx][1] # get vertical list
-                                opp_word = ''.join([new_crossword[p] for p in pos_list])
+                for idx in range(beginning_pos, end_pos + 1):
+                    pos_list = pos_word_lookup_table[idx][1] # get vertical list
+                    opp_word = ''.join([new_crossword[p] for p in pos_list])
 
-                                if '-' not in opp_word:
-                                    opp_word_set.add(opp_word)
-                                    new_words_in_xword.add(opp_word)
+                    if '-' not in opp_word:
+                        opp_word_set.add(opp_word)
+                        new_words_in_xword.add(opp_word)
 
-                        # vertical
+            # vertical
 
-                        else:
-                            count = 0
-                            new_crossword = crossword
+            else:
+                count = 0
+                new_crossword = crossword
 
-                            for pos in range(start, end, width):
-                                new_crossword = new_crossword[:pos] + word_to_place[count] + new_crossword[pos + 1:]
-                                count += 1
+                for pos in range(beginning_pos, end_pos + 1, width):
+                    new_crossword = new_crossword[:pos] + potential_word[count] + new_crossword[pos + 1:]
+                    count += 1
 
-                                pos_list = pos_word_lookup_table[pos][0] # get horizontal list
-                                opp_word = ''.join([new_crossword[p] for p in pos_list])
+                    pos_list = pos_word_lookup_table[pos][0] # get horizontal list
+                    opp_word = ''.join([new_crossword[p] for p in pos_list])
 
-                                if '-' not in opp_word:
-                                    opp_word_set.add(opp_word)
-                                    new_words_in_xword.add(opp_word)
+                    if '-' not in opp_word:
+                        opp_word_set.add(opp_word)
+                        new_words_in_xword.add(opp_word)
 
-                        # print(opp_word_set)
-                        # for i in range(height):
-                        #     for j in range(width):
-                        #         print(crossword[i * width + j], end=' ')
-                        #     print()
-                        # print()
+            ret = fill_in_words(new_crossword, height, width, new_words_in_xword, finished_horiz_words, finished_vert_words, opp_word_set)
 
-                        ret = fill_in_words(new_crossword, height, width, new_words_in_xword, finished_horiz_words, finished_vert_words, opp_word_set)
-
-                        if ret:
-                            # print(ret)
-                            return ret
+            if ret:
+                return ret
 
 
     return ''
