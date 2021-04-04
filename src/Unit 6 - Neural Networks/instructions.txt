@@ -1,0 +1,40 @@
+This lab is about generating networks in a classical fashion (where are the nodes are layed out and 
+then edges are selected uniformly from among all pairs of nodes) and in an incremental fashion (where 
+nodes are added one at a time, and when a new node wants an edge, the probability of connecting to any 
+already existing node is proportional to the degree of that node (or one plus the degree of that node 
+in case singletons are an issue).
+
+There are three command line inputs:
+The average degree (an int or float) of the nodes
+The letter C (for classical) or I (for incremental)
+The number of nodes
+
+The number of nodes times the average degree will be an even integer.  For the letter, you should 
+accept a string and take the upper case of the first letter in it (so that a person could input 
+"classical" rather than just "C").
+
+For each degree, d, in the resultant graph, the code should output d:# of nodes of degree d.  The grader 
+collects all such degree:count pairs (they do not need to be sorted) using re.findall(r"\b\d+\s*:\s*\d+\b", output)
+ so if you are printing timing information, remember to replace colons with something else.  
+ Per the regular expression shown, the entries may be separated according to one's own sense of aesthetics.
+
+In any particular test, it may be that a small number of your networks do not pass even if you are generating 
+them properly because the grader takes a conservative view of what the networks will be like so if your network 
+is an outlier, even if correct, the grader will not accept it.  If you try a few times, then you should experience success.
+
+The last two tests are on about half a million nodes and efficiency will be an issue (30 seconds allowed per test), 
+especially for the incremental one.  Some of the random library's procedures may be able to help with this.
+
+The error codes are:
+S: Script error
+O: output is empty
+P: no degree:count pairs
+C: Too few degree counts
+D: Odd dgree ct
+N: Node count is wrong
+E: Edge count is wrong
+Z: Non positive degree cnt
+L: Smallest degree is wrong
+M: Smalest degree (cnt is/cnts are) are wrong
+U: Largest degree is wrong
+V: Largest degree (cnt is/cnts are) are off
