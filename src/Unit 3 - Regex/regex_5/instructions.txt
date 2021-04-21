@@ -1,0 +1,27 @@
+This lab is about determining certain words in a dictionary using regular expressions.  
+The dictionary has one word per line.  However, it may include some capitalized words and 
+non-word letters such as hyphens and apostrophes, and spaces.  The words being sought have 
+none of these - all sought words have only word characters.
+
+The input to the submitted command line script will be an integer in the range [71,80], except
+ that #78 and 79 are not tested and automatically pass.  The script should output a regular expression 
+ to determine the specified word or words.  All the questions are of the form: find the shortest/longest
+  word  that ... , which means that each regular expression should contain a part that looks like {#,} or 
+  {,#} which will prove the length aspect.  See below for mistake types.
+
+# 70: where each vowel occurs at least once
+# 71: containing exactly 5 vowels
+# 72: with w acting as vowel
+# 73: where if all but the first 3 and last 3 letters are removed, a palindrome results
+# 74: where there is exactly one b and one t, and they are adjacent to each other
+# 75: with the longest contiguous block of one letter
+# 76: with the greatest number of a repeated letter
+# 77: with the greatest number of adjacent pairs of identical letters
+# 78: with the greatest number of consonants
+# 79: where no letter is repeated more than once
+
+Each regular expression should return at least 1 and no more than 12 lines, and the solution word(s) 
+must (all) be included.  The longest or shortest proof as mentioned above must be included in the regex. 
+Also the regex must not have any two consecutive letters from any of the solution words.
+
+The current target is 256
