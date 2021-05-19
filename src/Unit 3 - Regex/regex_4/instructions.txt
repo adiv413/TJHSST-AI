@@ -1,6 +1,6 @@
 Advanced RegEx Lab - No new material, but more involved problems.  Submission is a command line script which receives an integer in [60,69] and returns the corresponding regex, delimited between forward slashes, with any options trailing (eg. /hi mom/i)
 
-Word problems are case insensitive by default, string problems are not.  Target count for length of all 10 regular expressions is 253.  However, it may be that some of the solution regex's can be improved upon.
+Word problems are case insensitive by default, string problems are not.  Target count for length of all 10 regular expressions is 253 chars.  However, it may be that some of the solution regex's can be improved upon.
 
 Q60: Match all binary strings that do not contain the forbidden substring 010.  (14)
 Q61: Match all binary strings containing neither 101 nor 010 as substrings.  (20)

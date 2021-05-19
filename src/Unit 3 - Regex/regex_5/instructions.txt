@@ -24,4 +24,4 @@ Each regular expression should return at least 1 and no more than 12 lines, and 
 must (all) be included.  The longest or shortest proof as mentioned above must be included in the regex. 
 Also the regex must not have any two consecutive letters from any of the solution words.
 
-The current target is 256
+The current target is 256 chars

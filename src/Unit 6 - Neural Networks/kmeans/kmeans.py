@@ -120,31 +120,6 @@ def main():
     # print(means)
 
 
-
-    '''
-        while not stop:
-            stop = True
-            for each pixel:
-                init min distance and index
-                for each index:
-                    compare distance w min and find min distance
-                if min distance < curr distance:
-                    move the pixel to a diff bucket
-                    stop = False
-
-            #recompute the means
-            for each index:
-                init sum and count
-                for each pixel:
-                    sum[0] += pixel[0], sum[1] += etc
-                    count += pixel count
-
-                new pixel mean = (i/count for i in sum)
-
-
-    '''
-
-
     print("Final means:")
 
     new_pixels = []
