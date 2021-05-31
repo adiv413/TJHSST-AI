@@ -6,8 +6,21 @@ import time
 
 def main():
     # setup
+    inequality = args[0]
+    ineq_type = None
 
-    input_file = open(args[0], "r").read().splitlines()
+    if ">=" in inequality:
+        ineq_type = ">="
+    elif ">" in inequality:
+        ineq_type = ">"
+    elif "<=" in inequality:
+        ineq_type = "<="
+    else:
+        ineq_type = "<"
+        
+    radius = float(inequality[inequality.find(ineq_type) + len(ineq_type):])
+
+    num_samples = 5000
 
     raw_transfer_function = "logistic"
     transfer_function_map = {"linear" : linear, "relu" : relu, "logistic" : logistic, "scaled_logistic" : scaled_logistic}
@@ -15,20 +28,38 @@ def main():
     transfer_function_dx = logistic_dx
 
     alpha = 0.1 # learning rate
-    epochs = 50000
+    epochs = 100
 
     inputs = []
     expected_outputs = []
 
-    for line in input_file:
-        split_line = [i.strip() for i in line.split("=>")]
-        inputs.append([int(i) for i in (split_line[0] + " 1").split(" ")])
-        expected_outputs.append([int(i) for i in split_line[1].split(" ")])
+    # create training pairs
+
+    for i in range(num_samples):
+        x = (random.random() - 0.5) * 3
+        y = (random.random() - 0.5) * 3
+        inputs.append([x, y, 1])
+        output = None
+
+        if ineq_type == ">":
+            output = (x * x + y * y > radius)
+        elif ineq_type == ">=":
+            output = (x * x + y * y >= radius)
+        elif ineq_type == "<":
+            output = (x * x + y * y < radius)
+        else:
+            output = (x * x + y * y <= radius)
+
+        expected_outputs.append([1 if output else 0])
 
     n = len(inputs[0])
-    node_counts = [n, 2, 1, 1]
+    node_counts = [n, 12, 6, 1, 1]
     weights = [[[random.random() for k in range(node_counts[i + 1])] for j in range(node_counts[i])] for i in range(len(node_counts) - 1)]
-    
+    # print(inputs)
+    # print(expected_outputs)
+    # print(inequality)
+    # print(ineq_type)
+    # print(radius)
     print("Layer counts:", *node_counts)
 
     # run forward and backprop
@@ -48,8 +79,11 @@ def main():
             # print(inp, expected_outputs)
             backprop(x_values, weights, transfer_function_dx, expected_outputs[current_input_idx], alpha)
 
-            if current_epoch > epochs - 6:
-                print(expected_outputs[current_input_idx], x_values[-1])
+            # if current_epoch > epochs - 6:
+            #     print(expected_outputs[current_input_idx], x_values[-1])
+
+            # if current_epoch % int(epochs / 10) == 0:
+            #     print(expected_outputs[current_input_idx], x_values[-1])
 
         if current_epoch % int(epochs / 10) == 0:
             for layer in weights:
@@ -67,6 +101,48 @@ def main():
             for i in layer:
                 print(i[length], end=" ")
         print()  
+
+
+    # test the network
+
+    # test_inputs = []
+    # test_expected_outputs = []
+    # goof_count = 0
+    # num_test = 500
+
+    # for i in range(num_test):
+    #     x = (random.random() - 0.5) * 3
+    #     y = (random.random() - 0.5) * 3
+    #     test_inputs.append([x, y, 1])
+    #     output = None
+
+    #     if ineq_type == ">":
+    #         output = (x * x + y * y > radius)
+    #     elif ineq_type == ">=":
+    #         output = (x * x + y * y >= radius)
+    #     elif ineq_type == "<":
+    #         output = (x * x + y * y < radius)
+    #     else:
+    #         output = (x * x + y * y <= radius)
+
+    #     test_expected_outputs.append([1 if output else 0])
+
+    # for idx in range(len(test_inputs)):
+    #     inp_list = test_inputs[idx]
+    #     x_values = [[0.0 for j in range(node_counts[i])] for i in range(len(node_counts))] # node values for all nodes in the network
+
+    #     for i in range(len(x_values[0])):
+    #         x_values[0][i] = inp_list[i]
+
+    #     forward_prop(x_values, weights, transfer_function)
+    #     print(x_values[-1], test_expected_outputs[idx])
+    #     val = 1 if x_values[-1][0] > 0.5 else 0
+
+    #     if val != test_expected_outputs[idx][0]:
+    #         goof_count += 1
+
+    # print(goof_count, goof_count/num_test)
+
 
 def backprop(x_values, weights, transfer_function_dx, expected_outputs, alpha):
     errors = [[0.0 for j in range(len(x_values[i]))] for i in range(len(x_values))] # initialize errors to empty list with same shape as x_values

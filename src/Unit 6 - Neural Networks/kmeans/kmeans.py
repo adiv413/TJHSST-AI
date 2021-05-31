@@ -148,7 +148,88 @@ def main():
     final_image.putdata(new_pixels)
     final_image.save("kmeans/{}.png".format("2023avasanth"), "PNG")
     
+    parse_list = [] # stores indices
+    region_counts = []
+    total_parsed = 0
+    curr_region_count = 0
+    curr_pixel_mean = None
+    next_pixel = None
 
+    while total_parsed < len(new_pixels):
+        if len(parse_list) == 0: # either beginning of algorithm or the region is finished
+            print(curr_region_count, total_parsed, len(new_pixels))
+            if curr_region_count != 0:
+                region_counts.append(curr_region_count)
+                curr_region_count = 0
+            else:
+                parse_list.append(0)
+                curr_pixel_mean = new_pixels[0]
+
+            # if total_parsed 
+            # for i in range(len(new_pixels)): # find the first non "#" thing in the list
+            #     if new_pixels[i] != (-1, -1, -1):
+            #         print(i)
+            #         curr_pixel_mean = new_pixels[i]
+            #         parse_list.append(i)
+            #         break
+            if next_pixel is not None:
+                curr_pixel_mean = new_pixels[next_pixel]
+                parse_list.append(next_pixel)
+                next_pixel = None
+            # else:
+            #     for i in range(len(new_pixels)): # find the first non "#" thing in the list
+            #         if new_pixels[i] != (-1, -1, -1):
+            #             print(i)
+            #             curr_pixel_mean = new_pixels[i]
+            #             parse_list.append(i)
+            #             break
+        
+        if parse_list == []:
+            break
+
+        curr_pixel_idx = parse_list.pop()
+
+        if new_pixels[curr_pixel_idx] == curr_pixel_mean:
+            # add the recursive cases
+
+            if curr_pixel_idx // width > 0 and new_pixels[curr_pixel_idx - width] == curr_pixel_mean: # go up
+                parse_list.append(curr_pixel_idx - width)
+
+            if curr_pixel_idx // width < height - 1 and new_pixels[curr_pixel_idx + width] == curr_pixel_mean: # go down
+                parse_list.append(curr_pixel_idx + width)
+
+            if curr_pixel_idx % width > 0 and new_pixels[curr_pixel_idx - 1] == curr_pixel_mean: # go left
+                parse_list.append(curr_pixel_idx - 1)
+
+            if curr_pixel_idx % width < width - 1 and new_pixels[curr_pixel_idx + 1] == curr_pixel_mean: # go right
+                parse_list.append(curr_pixel_idx + 1)
+
+            if curr_pixel_idx // width > 0 and curr_pixel_idx % width > 0 and new_pixels[curr_pixel_idx - width - 1] == curr_pixel_mean: # go upleft
+                parse_list.append(curr_pixel_idx - width - 1)
+
+            if curr_pixel_idx // width > 0 and curr_pixel_idx % width < width - 1 and new_pixels[curr_pixel_idx - width + 1] == curr_pixel_mean: # go upright
+                parse_list.append(curr_pixel_idx - width + 1)
+
+            if curr_pixel_idx // width < height - 1 and curr_pixel_idx % width > 0 and new_pixels[curr_pixel_idx + width - 1] == curr_pixel_mean: # go downleft
+                parse_list.append(curr_pixel_idx + width - 1)
+
+            if curr_pixel_idx // width < height - 1 and curr_pixel_idx % width < width - 1 and new_pixels[curr_pixel_idx + width + 1] == curr_pixel_mean: # go downright
+                parse_list.append(curr_pixel_idx + width + 1)
+
+            # parse current pixel
+            new_pixels[curr_pixel_idx] = (-1, -1, -1)
+            total_parsed += 1
+            curr_region_count += 1
+
+        elif new_pixels[curr_pixel_idx] != (-1, -1, -1):
+            print("ooga booga")
+
+        elif next_pixel is None and new_pixels[curr_pixel_idx] != (-1, -1, -1):
+            next_pixel = curr_pixel_idx
+            print("next", curr_pixel_idx, curr_pixel_mean, new_pixels[next_pixel])
+
+    region_counts.append(curr_region_count)
+    print(region_counts)
     print("Region counts: 1, 2")
 
 
