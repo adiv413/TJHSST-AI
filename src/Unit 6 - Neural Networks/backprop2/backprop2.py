@@ -20,7 +20,7 @@ def main():
         
     radius = float(inequality[inequality.find(ineq_type) + len(ineq_type):])
 
-    num_samples = 5000
+    num_samples = 10000
 
     raw_transfer_function = "logistic"
     transfer_function_map = {"linear" : linear, "relu" : relu, "logistic" : logistic, "scaled_logistic" : scaled_logistic}
