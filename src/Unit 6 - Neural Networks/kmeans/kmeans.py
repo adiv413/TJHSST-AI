@@ -60,13 +60,6 @@ def main():
                     min_distance = distance
                     best_index = i
 
-                # if pixel == means[i]:
-                #     print("sagdewlkjsldkjfkldsfjklsdjfklsdjfsdlkfjsdfkl")
-                #     print(distance)
-                #     print(min_distance)
-                #     print(means[best_index])
-                #     print(pixel in mean_buckets[i])
-
             if pixel not in mean_buckets[best_index]:
                 mean_buckets[best_index][pixel] = (pixel_counts[pixel], min_distance)
                 stop = False
@@ -94,7 +87,6 @@ def main():
                 pixel_sum[0] += pixel[0] * count
                 pixel_sum[1] += pixel[1] * count
                 pixel_sum[2] += pixel[2] * count
-                # print(count)
             
             if total_count != 0:
                 new_mean = (pixel_sum[0] / total_count, pixel_sum[1] / total_count, pixel_sum[2] / total_count)
@@ -102,23 +94,6 @@ def main():
 
             else:
                 pass
-                # # find the closest mean, make the current mean half the distance towards the closest mean
-
-                # min_dist = None
-                # min_mean = None
-
-                # for j in range(k):
-                #     distance = (means[j][0] - means[i][0]) ** 2 + (means[j][1] - means[i][1]) ** 2 + (means[j][2] - means[i][2]) ** 2 
-
-                #     if min_dist is None or min_dist > distance:
-                #         min_dist = distance
-                #         min_mean = j
-
-                # new_mean = ((means[i][0] + means[min_mean][0]) / 2, (means[i][1] + means[min_mean][1]) / 2, (means[i][2] + means[min_mean][2]) / 2)
-                # means[i] = new_mean
-
-    # print(means)
-
 
     print("Final means:")
 

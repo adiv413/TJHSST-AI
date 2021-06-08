@@ -1,0 +1,6 @@
+1.2 .3 0.4 .56 .789 1
+# This line should be ignored since there are no numbers
+-.1, 0.23, 3.45, -.4567, , , .9866, and -0.321
+Same with this line and the next, empty line
+1.2 y -3.4
+.654

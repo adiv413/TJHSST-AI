@@ -6,8 +6,9 @@ import time
 
 def main():
     # setup
-    inequality = args[0]
-    ineq_type = None
+    # get inequality
+    inequality = args[1]
+    negate = False
 
     if ">=" in inequality:
         ineq_type = ">="
@@ -15,203 +16,128 @@ def main():
         ineq_type = ">"
     elif "<=" in inequality:
         ineq_type = "<="
+        negate = True
     else:
         ineq_type = "<"
+        negate = True
         
     radius = float(inequality[inequality.find(ineq_type) + len(ineq_type):])
 
-    num_samples = 10000
-
-    raw_transfer_function = "logistic"
-    transfer_function_map = {"linear" : linear, "relu" : relu, "logistic" : logistic, "scaled_logistic" : scaled_logistic}
-    transfer_function = transfer_function_map[raw_transfer_function.lower()]
-    transfer_function_dx = logistic_dx
-
-    alpha = 0.1 # learning rate
-    epochs = 100
+    # get weights
 
     inputs = []
     expected_outputs = []
 
-    # create training pairs
+    weightfile = args[0]
+    all_weights = open(weightfile, "r").read().splitlines()
+    actual_weights = []
 
-    for i in range(num_samples):
-        x = (random.random() - 0.5) * 3
-        y = (random.random() - 0.5) * 3
-        inputs.append([x, y, 1])
-        output = None
+    for layer in all_weights:
+        split_weights = layer.strip().split(" ")
 
-        if ineq_type == ">":
-            output = (x * x + y * y > radius)
-        elif ineq_type == ">=":
-            output = (x * x + y * y >= radius)
-        elif ineq_type == "<":
-            output = (x * x + y * y < radius)
-        else:
-            output = (x * x + y * y <= radius)
+        weights = []
+        for token in split_weights:
+            number = ""
+            for i in token:
+                if i in "-.0123456789":
+                    number += i
+            if number != "":
+                weights.append(float(number))
 
-        expected_outputs.append([1 if output else 0])
+        if weights == []:
+            continue
+        
+        actual_weights.append(weights)
 
-    n = len(inputs[0])
-    node_counts = [n, 12, 6, 1, 1]
-    weights = [[[random.random() for k in range(node_counts[i + 1])] for j in range(node_counts[i])] for i in range(len(node_counts) - 1)]
-    # print(inputs)
-    # print(expected_outputs)
-    # print(inequality)
-    # print(ineq_type)
-    # print(radius)
+    initial_node_counts = [2]
+    for i in range(len(actual_weights)):
+        initial_node_counts.append(int(len(actual_weights[i]) / initial_node_counts[i]))
+
+    # combine the weights
+
+    # first layer
+
+    new_first_weights = []
+    count = 0
+    while count < len(actual_weights[0]):
+        new_first_weights.append(actual_weights[0][count] / math.sqrt(radius))
+        new_first_weights.append(0)
+        new_first_weights.append(actual_weights[0][count + 1])
+        count += 2
+
+    count = 0
+    while count < len(actual_weights[0]):
+        new_first_weights.append(0)
+        new_first_weights.append(actual_weights[0][count] / math.sqrt(radius))
+        
+        new_first_weights.append(actual_weights[0][count + 1])
+        count += 2
+
+    actual_weights[0] = [i for i in new_first_weights]
+    # for layer in actual_weights:
+    #     print(*layer) 
+
+    # all hidden layers
+
+    for i in range(1, len(actual_weights) - 1):
+        new_weights = []
+
+        count = 0
+
+        while count < len(actual_weights[i]):
+            for j in range(initial_node_counts[i]):
+                new_weights.append(actual_weights[i][count + j])
+            for j in range(initial_node_counts[i]):
+                new_weights.append(0)
+
+            count += initial_node_counts[i]
+
+        count = 0
+
+        while count < len(actual_weights[i]):
+            for j in range(initial_node_counts[i]):
+                new_weights.append(0)
+            for j in range(initial_node_counts[i]):
+                new_weights.append(actual_weights[i][count + j])
+
+            count += initial_node_counts[i]
+
+
+        actual_weights[i] = [j for j in new_weights]
+
+
+    # output layer
+    if negate:
+        actual_weights[-1] = [-actual_weights[-1][0], -actual_weights[-1][0]]
+    else:
+        actual_weights[-1] = [actual_weights[-1][0], actual_weights[-1][0]]
+
+    if negate:
+        actual_weights.append([math.e * (1 + math.e) / (2 * math.e)])
+    else:
+        actual_weights.append([(1 + math.e) / (2 * math.e)])
+
+    node_counts = [3]
+    for i in range(len(actual_weights)):
+        node_counts.append(int(len(actual_weights[i]) / node_counts[i]))
+
     print("Layer counts:", *node_counts)
+    for layer in actual_weights:
+        print(*layer) 
 
-    # run forward and backprop
+    # n = len(inputs[0])
+    # node_counts = [n, 12, 6, 1, 1]
+    # weights = [[[random.random() for k in range(node_counts[i + 1])] for j in range(node_counts[i])] for i in range(len(node_counts) - 1)]
 
-    for current_epoch in range(epochs):
-        for current_input_idx in range(len(inputs)):
-            inp_list = inputs[current_input_idx]
-            # print(inp_list)
-            x_values = [[0.0 for j in range(node_counts[i])] for i in range(len(node_counts))] # node values for all nodes in the network
+    # print("Layer counts:", *node_counts)
 
-            for i in range(len(x_values[0])):
-                x_values[0][i] = inp_list[i]
-
-            forward_prop(x_values, weights, transfer_function)
-            # print(x_values[-1])
-            # print()
-            # print(inp, expected_outputs)
-            backprop(x_values, weights, transfer_function_dx, expected_outputs[current_input_idx], alpha)
-
-            # if current_epoch > epochs - 6:
-            #     print(expected_outputs[current_input_idx], x_values[-1])
-
-            # if current_epoch % int(epochs / 10) == 0:
-            #     print(expected_outputs[current_input_idx], x_values[-1])
-
-        if current_epoch % int(epochs / 10) == 0:
-            for layer in weights:
-                for length in range(len(layer[0])):
-                    for node in layer:
-                        print(node[length], end=" ")
-                print()
-            
-
-    # weights go from curr layer to next layer, 3d array
-    print()
-    print()
-    for layer in weights:
-        for length in range(len(layer[0])):
-            for i in layer:
-                print(i[length], end=" ")
-        print()  
-
-
-    # test the network
-
-    # test_inputs = []
-    # test_expected_outputs = []
-    # goof_count = 0
-    # num_test = 500
-
-    # for i in range(num_test):
-    #     x = (random.random() - 0.5) * 3
-    #     y = (random.random() - 0.5) * 3
-    #     test_inputs.append([x, y, 1])
-    #     output = None
-
-    #     if ineq_type == ">":
-    #         output = (x * x + y * y > radius)
-    #     elif ineq_type == ">=":
-    #         output = (x * x + y * y >= radius)
-    #     elif ineq_type == "<":
-    #         output = (x * x + y * y < radius)
-    #     else:
-    #         output = (x * x + y * y <= radius)
-
-    #     test_expected_outputs.append([1 if output else 0])
-
-    # for idx in range(len(test_inputs)):
-    #     inp_list = test_inputs[idx]
-    #     x_values = [[0.0 for j in range(node_counts[i])] for i in range(len(node_counts))] # node values for all nodes in the network
-
-    #     for i in range(len(x_values[0])):
-    #         x_values[0][i] = inp_list[i]
-
-    #     forward_prop(x_values, weights, transfer_function)
-    #     print(x_values[-1], test_expected_outputs[idx])
-    #     val = 1 if x_values[-1][0] > 0.5 else 0
-
-    #     if val != test_expected_outputs[idx][0]:
-    #         goof_count += 1
-
-    # print(goof_count, goof_count/num_test)
-
-
-def backprop(x_values, weights, transfer_function_dx, expected_outputs, alpha):
-    errors = [[0.0 for j in range(len(x_values[i]))] for i in range(len(x_values))] # initialize errors to empty list with same shape as x_values
-    gradients = [[[0.0 for k in j] for j in i] for i in weights] # stores negative gradient * alpha values, same shape as weights
-
-    for layer in range(len(x_values) - 2, -1, -1): # layer
-        for i in range(len(x_values[layer])): # each node in layer
-            if layer == len(x_values) - 2: # if this is the last layer: special case
-                first_neg_gradient = (expected_outputs[i] - x_values[layer + 1][i]) * x_values[layer][i]
-                errors[layer][i] = (expected_outputs[i] - x_values[layer + 1][i]) * weights[layer][i][0] * transfer_function_dx(x_values[layer][i])
-                gradients[layer][i][0] = alpha * first_neg_gradient # negative gradient for the very last weight 
-            else:
-                # compute error first, then the negative gradient
-                sum_errors = 0.0
-
-                for j in range(len(errors[layer + 1])): # iterate through all of the errors in the next layer
-                    sum_errors += weights[layer][i][j] * errors[layer + 1][j]
-                    neg_gradient = x_values[layer][i] * errors[layer + 1][j]
-                    gradients[layer][i][j] = alpha * neg_gradient
-
-                errors[layer][i] = sum_errors * transfer_function_dx(x_values[layer][i])
-
-    for layer in range(len(gradients)):
-        for i in range(len(gradients[layer])):
-            for j in range(len(gradients[layer][i])): # update all weights with the respective negative gradient * alpha value
-                weights[layer][i][j] += gradients[layer][i][j]
-
-def forward_prop(x_values, weights, transfer_function):
-    for layer in range(len(x_values) - 1): # layer = index of current layer
-        curr_layer = x_values[layer]
-        curr_weights = weights[layer]
-        next_layer = [0.0 for layer in x_values[layer + 1]] # used to accumulate all of the node * weight values
-
-        # outer: next layer, inner: curr layer
-        if layer != len(x_values) - 2: # if we're not at the last layer
-            for i in range(len(curr_layer)):
-                for j in range(len(next_layer)):
-                    curr_weight = curr_weights[i][j]
-                    next_layer[j] += float(curr_layer[i] * curr_weight)
-            
-            for i in range(len(next_layer)):
-                next_layer[i] = float(transfer_function(next_layer[i]))
-
-        else:
-            assert(len(curr_layer) == len(curr_weights) and len(curr_weights[0]) == 1)
-            next_layer = [curr_layer[i] * curr_weights[i][0] for i in range(len(curr_weights))]
-
-        for i in range(len(next_layer)): # set the next layer of x_values
-            x_values[layer + 1][i] = next_layer[i]
-
-def linear(inp):
-    return inp
-
-def relu(inp):
-    return inp if inp > 0 else 0
-
-def logistic(inp):
-    try:
-        return 1 / (1 + math.e ** (-inp))
-    except Exception as e:
-        if inp > 0:
-            return 1
-        return 0
-
-
-def scaled_logistic(inp):
-    return 2 * logistic(inp) - 1
-
-def logistic_dx(inp):
-    return inp * (1 - inp)
+    # # weights go from curr layer to next layer, 3d array
+    # print()
+    # print()
+    # for layer in weights:
+    #     for length in range(len(layer[0])):
+    #         for i in layer:
+    #             print(i[length], end=" ")
+    #     print()  
 
 main()
